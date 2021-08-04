@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: chartservice-pod-dal09-dev-ocp-01-test
+  labels:
+    app: chartservice-pod-dal09-dev-ocp-01
+  namespace: example
+spec:
+  imagePullSecrets:
+    - name: example-docker-registry-pull
+  containers:
+    - name: chartservice-pod-dal09-dev-ocp-01
+      image: mss-docker.artifactory.swg-devops.com/chart_service:1.2.0-container.8b60f8cd
+      command: [ "/bin/bash", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]

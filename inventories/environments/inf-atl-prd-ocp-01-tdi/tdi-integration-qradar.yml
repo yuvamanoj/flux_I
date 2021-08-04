@@ -1,0 +1,33 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: tdi-integration-qradar
+  namespace: tdi
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: tdi-integration-qradar
+  forceUpgrade: false
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: tdi-integration-qradar
+    version: 0.1.0
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/tdi-integration-qradar
+      tag: 0.1.0-master.c6d3278f
+    resources:
+      limits:
+        cpu: 2
+      requests:
+        cpu: 1
+    secretName: tdi-integration-mss-services-prd-secrets
+    imagePullSecrets:
+    - name: docker-registry-pull
+    graphite:
+      enabled: false
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here

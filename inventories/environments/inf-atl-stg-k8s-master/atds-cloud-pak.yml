@@ -1,0 +1,53 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: atds-cloud-pak
+  namespace: master
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: atds-cloud-pak
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: atds-cloud-pak
+    version: 0.2.175
+  values:
+    test: false
+    include_xpsws_gateway: false
+
+    environment: sa-atl-stg
+    organization: sa
+    location: atl
+    stack: stg
+    domain: atl-stg.k8s.sec.ibm.com
+    team: sa
+    #pypi_repo_url: na.artifactory.swg-devops.com/artifactory/api/pypi/mss-pypi/simple
+    pypi_repo_url: na.artifactory.swg-devops.com/artifactory/api/pypi/mss-pypi-snapshots/simple
+    pypi_repo_username: mssbuild@us.ibm.com
+    pypi_repo_password_secret_name: pypi-repo-password
+
+    kafka_bootstrap_servers: atl-stg-kfk-01a.sec.ibm.com:9093,atl-stg-kfk-01b.sec.ibm.com:9093,atl-stg-kfk-01c.sec.ibm.com:9093
+    services_rest_url: https://stg-services.sec.ibm.com/rest
+    alert_metadata_ms_url: https://stg-services.sec.ibm.com/micro/ai_alert_metadata
+    atds_prediction_url: https://stg-services.sec.ibm.com/micro/atds-python/predict
+    atds_input_ms_url: https://stg-services.sec.ibm.com/micro/atds_input
+    alert_ms_url: https://stg-services.sec.ibm.com/micro/ai_alert
+    alert_worklog_ms_url: https://stg-services.sec.ibm.com/micro/ai_alert_worklog
+
+    kafka_keystores_secret_name: kafka-keystores
+    kafka_jaas_secret_name: kafka-jaas
+    services_token_secret_name: services-token
+    new_relic_license_key_secret_name: new-relic-license-key
+    docker_registry_pull_secret_name: docker-registry-pull
+    cm_token_secret_name: config-management-token
+    
+    components:
+      atds_python_ms:
+        min_replicas: 2
+        max_replicas: 2
+      atds_input_ms:
+        min_replicas: 2
+        max_replicas: 2

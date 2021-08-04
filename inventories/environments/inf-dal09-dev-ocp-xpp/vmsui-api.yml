@@ -1,0 +1,42 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: vmsui-api
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-devtest.*
+spec:
+  releaseName: vmsui-api
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/vmsui-api
+    ref: dev-test
+    path: chart
+  values:
+    config:
+      USE_SQLITE: 'true'
+      SSO_USE_IBMID_PROD: 'false'
+      SSO_USE_IBMID: 'true'
+      SSO_DISCOVERY_URL: https://prepiam.ice.ibmcloud.com/v1.0/endpoint/default/.well-known/openid-configuration
+      SSO_BASE_URL: https://prepiam.ice.ibmcloud.com
+      SSO_CALLBACK_URL: https://vmsui-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/auth/sso/callback
+      SERVICES_URL: https://stg-services.sec.ibm.com:443/micro/
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/vmsui-api
+      tag: 2020.12.14-devtest.e2d83056
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: .5
+      requests:
+        cpu: .25
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+      port: 2003
+
+# TEMPLATE: Insert other required configuration values here

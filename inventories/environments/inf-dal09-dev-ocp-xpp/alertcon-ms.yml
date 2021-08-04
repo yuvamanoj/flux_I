@@ -1,0 +1,32 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: alertcon-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: alertcon-ms
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/alertcon-ms
+    ref: master
+    path: chart
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/alertcon-ms
+      tag: 0.0.1-integration.59da3a9b
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: .5
+      requests:
+        cpu: .25
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here

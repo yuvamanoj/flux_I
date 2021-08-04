@@ -1,0 +1,33 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: ms-update-listener
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: ms-update-listener
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: ms-update-listener
+    version: 0.2.30-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/ms-update-listener
+      tag: 0.2.30-openshift.b457308e
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    secretDir: /etc/cm.token
+    secretName: cm-token
+    env:
+      environment: stg
+      cluster_name: xps-atl-stg
+      es_host: atl-stg-eas-01a.sec.ibm.com,atl-stg-eas-01b.sec.ibm.com,atl-stg-eas-01c.sec.ibm.com
+      es_port: 9300
+      vault_role_id: cdf8eec9-9487-0641-1693-b08bbfecf586
+      vault_secret_id: 850aae36-a3c3-4a40-6388-b0b742c2e5ff
+      vault_path: secret/modules/ms_update_listener/
+      vault_url: https://stg-vault.sec.ibm.com:8200

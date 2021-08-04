@@ -1,0 +1,62 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: device-license-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: device-license-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: device-license-ms
+    version: 1.0.2-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/device-license-ms
+      tag: 1.0.2-master.a2df78cd
+    graphite:
+      enabled: true
+      host: ruh01-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'device-license-ms'
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.username: "secret/modules/device-license-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.username: |-
+        {{- with secret "secret/modules/device-license-ms/elastic-search" -}}{{- .Data.data.USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.password: "secret/modules/device-license-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.password: |-
+        {{- with secret "secret/modules/device-license-ms/elastic-search" -}}{{- .Data.data.PASSWORD -}}{{- end }}
+    ingress:
+      enabled: true
+      hosts:
+        - host: device-license-ms.ruh01-prd.k8s.sec.ibm.com
+          paths:
+            - /
+      tls:
+        - hosts:
+            - device-license-ms.ruh01-prd.k8s.sec.ibm.com
+    config:
+      server:
+        port: 3333
+      app:
+        elasticSearch:
+          baseUrl: ruh01-prd-eas-01a.sec.ibm.com:9200,ruh01-prd-eas-01b.sec.ibm.com:9200,ruh01-prd-eas-01c.sec.ibm.com:9200
+          indexName: hdlicensing
+          type: licensing
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

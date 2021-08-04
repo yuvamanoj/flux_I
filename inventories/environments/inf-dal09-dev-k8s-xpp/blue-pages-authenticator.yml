@@ -1,0 +1,27 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: blue-pages-authenticator
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: blue-pages-authenticator
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/blue-pages-authenticator
+    ref: master
+    path: chart
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/blue-pages-authenticator
+      tag: 1.1.1-master.bb2dd609
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here

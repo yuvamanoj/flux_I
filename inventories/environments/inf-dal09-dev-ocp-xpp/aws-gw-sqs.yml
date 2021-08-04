@@ -1,0 +1,27 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: aws-gw-sqs
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-dev.*
+spec:
+  releaseName: aws-gw-sqs
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: aws-gw-sqs
+    version: 0.0.7-dev
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/aws-gw-sqs
+      tag: 0.0.8-dev.9740bf53
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here

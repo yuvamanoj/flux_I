@@ -1,0 +1,45 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: cs-alert-worker
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: cs-alert-worker
+  forceUpgrade: false
+  chart:
+    git: git@github.ibm.com:managed-security/cs-alert-worker
+    ref: XPS-88648
+    path: chart
+  values:
+    replicaCount: 2
+    revisionHistoryLimit: 1
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/cs-alert-worker
+      tag: 1.4.14-xps88648.9d322662
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.k8s.xpp
+    secretName: cs-alert-worker
+    config:
+      mdr:
+        retryAttempts: 3
+        retryBackoffSeconds: 30
+        skipAlertUpdateTrigger: "[skip alert-update]"
+        services:
+          baseUrl: https://stg-services.sec.ibm.com
+          timeoutSeconds: 15
+        worklog:
+          retryAttempts: 3
+          retryBackoffSeconds: 30
+      spring:
+        kafka:
+          bootstrap-servers: atl-stg-kfk-01a.sec.ibm.com:9093, atl-stg-kfk-01b.sec.ibm.com:9093,
+            atl-stg-kfk-01c.sec.ibm.com:9093
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      LOG_FORMAT: json
+      LOG_LEVEL: DEBUG

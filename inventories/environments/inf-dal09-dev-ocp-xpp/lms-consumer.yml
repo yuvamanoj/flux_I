@@ -1,0 +1,41 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: lms-consumer
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-develop.*
+spec:
+  releaseName: lms-consumer
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/example-pulsar-consumer
+    ref: integration
+    path: chart
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/example-pulsar-consumer
+      tag: 1.0.1-integration.e04bc693
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: 2
+      requests:
+        cpu: 1.5
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    log:
+      level: TRACE
+      format: plain
+    config:
+      pulsar:
+        messaging-url: 'pulsar://pulsar-proxy.pulsar.svc.cluster.local:6650/'
+        inbound-topic-name: 'enrichment-device-traffic'
+        inbound-subscription-name: 'lms-consumer'
+        inbound-subscription-type: 'Failover'
+        max-message-to-display: 0

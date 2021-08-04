@@ -1,0 +1,98 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: atds-input-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-xps90966.*
+spec:
+  replicaCount: 2
+  releaseName: atds-input-ms
+  forceUpgrade: false
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: atds-input-ms
+    version: 0.0.36-xps90966helmreleasewithvaultinjector
+  values:
+    resources:
+      requests:
+        cpu: 1
+        memory: 500Mi
+      limits:
+        cpu: 2
+        memory: 1024Mi
+    readinessProbe:
+      initialDelaySeconds: 300
+    livenessProbe:
+      initialDelaySeconds: 300
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/atds_input_ms
+      tag: 0.0.36-xps90966helmreleasewithvaultinjector.2c605f74
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.k8s.xpp
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'atds-input-ms'
+      vault.hashicorp.com/agent-inject-secret-app.services.token: "secret/modules/atds-input-ms/client/services/auth"
+      vault.hashicorp.com/agent-inject-template-app.services.token: |-
+        {{- with secret "secret/modules/atds-input-ms/client/services/auth" -}}{{- .Data.data.TOKEN -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.newrelic.token: "secret/modules/atds-input-ms/client/newrelic/auth"
+      vault.hashicorp.com/agent-inject-template-app.newrelic.token: |-
+        {{- with secret "secret/modules/atds-input-ms/client/newrelic/auth" -}}{{- .Data.data.TOKEN | base64Decode -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.kafka.keystore: "secret/modules/atds-input-ms/client/kafka/auth"
+      vault.hashicorp.com/agent-inject-template-app.kafka.keystore: |-
+        {{- with secret "secret/modules/atds-input-ms/client/kafka/auth" -}}{{- .Data.data.kafka_keystore_b64 | base64Decode -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.kafka.truststore: "secret/modules/atds-input-ms/client/kafka/auth"
+      vault.hashicorp.com/agent-inject-template-app.kafka.truststore: |-
+        {{- with secret "secret/modules/atds-input-ms/client/kafka/auth" -}}{{- .Data.data.kafka_truststore_b64 | base64Decode -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.kafka.username: "secret/modules/atds-input-ms/client/kafka/auth"
+      vault.hashicorp.com/agent-inject-template-app.kafka.username: |-
+        {{- with secret "secret/modules/atds-input-ms/client/kafka/auth" -}}{{- .Data.data.kafka_username -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.kafka.password: "secret/modules/atds-input-ms/client/kafka/auth"
+      vault.hashicorp.com/agent-inject-template-app.kafka.password: |-
+        {{- with secret "secret/modules/atds-input-ms/client/kafka/auth" -}}{{- .Data.data.kafka_password -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-kafka_client.jaas: "secret/modules/atds-input-ms/client/kafka/auth"
+      vault.hashicorp.com/agent-inject-template-kafka_client.jaas: |-
+        {{- with secret "secret/modules/atds-input-ms/client/kafka/auth" -}}{{- .Data.data.kafka_jaas | base64Decode -}}{{- end }}
+env:
+  CLOUD_PAK: atds_automation_system
+  DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+  LOG_FORMAT: json
+  LOG_LEVEL: DEBUG
+  ENVIRONMENT: sa-dal09-dev
+  ORGANIZATION: sa
+  LOCATION: dal09
+  STACK: dev
+  DOMAIN: dal09-dev.k8s-lab.sec.ibm.com
+  TEAM: sa
+  KAFKA_SSL_TRUSTSTORE_LOCATION: /vault/secrets/app.kafka.truststore
+  KAFKA_SSL_KEYSTORE_LOCATION: /vault/secrets/app.kafka.keystore
+  NEW_RELIC_LOG_FILE_NAME: STDOUT
+  NEW_RELIC_LOG_LEVEL: WARN
+  NEW_RELIC_SYNC_STARTUP: true
+  NEW_RELIC_AGENT_ENABLED: true
+  NEW_RELIC_SEND_DATA_ON_EXIT: true
+  NEW_RELIC_SEND_DATA_ON_EXIT_THRESHOLD: 60
+  NEW_RELIC_APP_NAME: "atds-input-ms-dev"
+  NEW_RELIC_LABELS: "Application:atds-input-ms;Org:sa;Region:Dal09;Stack:Dev;Namespace:xpp"
+
+kafka_bootstrap_servers: dal09-dev-kfk-01a.sec.ibm.com:9093,dal09-dev-kfk-01b.sec.ibm.com:9093,dal09-dev-kfk-01c.sec.ibm.com:9093
+services_rest_url: https://dal09-dev-services.sec.ibm.com/rest
+alert_metadata_ms_url: https://dal09-dev-services.sec.ibm.com/micro/ai_alert_metadata
+atds_prediction_url: https://dal09-dev-services.sec.ibm.com/micro/atds-python/predict
+atds_input_ms_url: https://dal09-dev-services.sec.ibm.com/micro/atds_input
+alert_ms_url: https://dal09-dev-services.sec.ibm.com/micro/ai_alert
+alert_worklog_ms_url: https://dal09-dev-services.sec.ibm.com/micro/ai_alert_worklog
+
+atds_key_indicators_url: https://dal09-dev-services.sec.ibm.com/micro/atds-python/key_indicators
+atds_historical_url: https://dal09-dev-services.sec.ibm.com/micro/atds-python/historical
+atds_historical_stats_url: https://dal09-dev-services.sec.ibm.com/micro/atds-python/historical_stats
+atds_variable_importance_url: https://dal09-dev-services.sec.ibm.com/micro/atds-python/variable_importance
+qradar_rest_api: https://dal09-dev-services.sec.ibm.com/micro/qradar_rest_api

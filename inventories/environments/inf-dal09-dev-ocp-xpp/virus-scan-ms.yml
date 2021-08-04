@@ -1,0 +1,35 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: virus-scan-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: virus-scan-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: virus-scan-ms
+    version: 1.0.2-openshift
+  values:
+    replicaCount: 1
+    revisionHistoryLimit: 1
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/virus-scan-ms
+      tag: 1.0.2-openshift.2e965c3f
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    secretName: virus-scan-ms
+    route:
+      enabled: true
+    config:
+      app:
+        clamav:
+          host: localhost
+          port: 3310
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

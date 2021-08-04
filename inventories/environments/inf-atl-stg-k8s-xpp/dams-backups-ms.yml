@@ -1,0 +1,43 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: dams-backups-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-stg.*
+spec:
+  releaseName: dams-backups-ms
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: dams-backups-ms
+    version: 1.1.0-stg
+  values:
+    service:
+      targetPort: 3000
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/dams-backups-ms
+      tag: 1.1.0-stg.e6fe3485
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    ingress:
+      enabled: true
+      hosts:
+      - host: dams-backups-ms.atl-stg.k8s.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - dams-backups-ms.atl-stg.k8s.sec.ibm.com
+    config:
+      server:
+        port: 3000
+      env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull

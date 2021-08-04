@@ -1,0 +1,61 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: dams-backups-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-dev.*
+spec:
+  releaseName: dams-backups-ms
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: dams-backups-ms
+    version: 1.4.7-dev
+  values:
+    service:
+      targetPort: 3000
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/dams-backups-ms
+      tag: 1.4.7-dev.e3345afa
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/role: dams-backups-ms
+      vault.hashicorp.com/agent-inject-secret-database.json: secret/data/modules/dams-backups-ms/db
+      vault.hashicorp.com/agent-inject-template-database.json: |
+        {{- with secret "secret/modules/dams-backups-ms/db" -}}
+        {{- .Data.data | toJSON -}}
+        {{- end }}
+      vault.hashicorp.com/agent-inject-secret-token.json: secret/data/modules/dams-backups-ms/client/services/auth
+      vault.hashicorp.com/agent-inject-template-token.json: |
+        {{- with secret "secret/modules/dams-backups-ms/client/services/auth" -}}
+        {{- .Data.data | toJSON -}}
+        {{- end }}
+    ingress:
+      enabled: true
+      hosts:
+      - host: dams-backups-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - dams-backups-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+    config:
+      server:
+        port: 3333
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      VAULT_ADDR: https://dev-vault.sec.ibm.com:8200
+      CLUSTER: dal09-dev-k8s-01
+      SERVICES_URL: https://dal09-dev-services.sec.ibm.com/micro

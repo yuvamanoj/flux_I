@@ -1,0 +1,60 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: ecd-file-monitor
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: ecd-file-monitor
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: ecd-file-monitor
+    version: 0.0.30-integration
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/ecd-file-monitor
+      tag: 0.0.30-integration.022bb267
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: 2
+      requests:
+        cpu: .5
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here
+    config:
+      spring:
+        kafka:
+          bootstrap-servers: dal09-dev-kfk-01a.sec.ibm.com:9093,dal09-dev-kfk-01b.sec.ibm.com:9093,dal09-dev-kfk-01c.sec.ibm.com:9093
+      ecd:
+        stack:
+          env: dal09-dev
+        esJson:
+          microserviceBaseUrl: https://dal09-dev-services.sec.ibm.com
+          timeoutSeconds: 30
+      fileProcessStateIndex:
+        retryAttempts: 1
+        retryBackoffSeconds: 3
+      box:
+        client:
+          maxCacheEntries: 5
+    env:
+      NEW_RELIC_APP_NAME: ecd-file-monitor-dal09-dev
+      NEW_RELIC_PROCESS_HOST_DISPLAY_NAME: ecd-dal09-dev
+      NEW_RELIC_AGENT_ENABLED: true
+      NEW_RELIC_LOG_LEVEL: warn
+      NEW_RELIC_LOG_FILE_NAME: STDOUT
+      NEW_RELIC_SYNC_STARTUP: true
+      NEW_RELIC_SEND_DATA_ON_EXIT: true
+      NEW_RELIC_SEND_DATA_ON_EXIT_THRESHOLD: 6
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /opt/app/secrets.d/dev_kafka.truststore.jks
+      KAFKA_SSL_KEYSTORE_LOCATION: /opt/app/secrets.d/dev_kafka.client_keystore.jks
+

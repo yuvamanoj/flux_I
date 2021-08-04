@@ -1,0 +1,32 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: ticket-device-mapping-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: ticket-device-mapping-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: ticket-device-mapping-ms
+    version: 1.0.31-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/ticket_device_mapping_ms
+      tag: 1.0.31-openshift.bc94c82c
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    env:
+      ENV: dev
+      HOSTNAME_PREFIX: ticket-device-mapping-ms-dev-ocp
+      services_base_url: https://xpsws-gateway.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com
+      elastic_search_ms: https://es-search-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/es_search
+      remedyUpdateMsUrl: https://remedy-update-ms-integration.dal09-dev.k8s-lab.sec.ibm.com/remedy_update_ms
+      ticketDetailUrl: https://ticket-detail-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/ticket_detail/
+      customer_data_permission_ms: https://customer-data-permissions-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/customer_data_permissions/
+      deviceDetailUrl: https://device-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/device
+    secretName: cm-token

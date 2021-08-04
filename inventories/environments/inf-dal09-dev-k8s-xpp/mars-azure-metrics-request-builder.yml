@@ -1,0 +1,68 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mars-azure-metrics-request-builder
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: mars-azure-metrics-request-builder
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/mars-azure-metrics-request-builder
+    ref: integration
+    path: chart
+  values:
+    replicaCount: 1
+    revisionHistoryLimit: 1
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/mars-azure-metrics-request-builder
+      tag: 0.0.11-integration.4b674fd4
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.k8s.integration
+    route:
+      enabled: false
+    ingress:
+      enabled: true
+      hosts:
+      - host: mars-azure-metrics-request-builder-integration.dal09-dev.k8s-lab.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - mars-azure-metrics-request-builder-integration.dal09-dev.k8s-lab.sec.ibm.com
+    config:
+      app:
+        services:
+          baseUrl: https://dal09-dev-services.sec.ibm.com
+          timeoutSeconds: 30
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/role: "mars-azure-metrics-request-builder"
+      vault.hashicorp.com/agent-inject-secret-app.services.admin-token: "secret/data/modules/mars-azure-metrics-request-builder/client/services/auth"
+      vault.hashicorp.com/agent-inject-template-app.services.admin-token: |-
+        {{- with secret "secret/data/modules/mars-azure-metrics-request-builder/client/services/auth" -}}{{- .Data.data.TOKEN -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-newrelic: "secret/data/modules/mars-azure-metrics-request-builder/newrelic"
+      vault.hashicorp.com/agent-inject-template-newrelic: |-
+        {{- with secret "secret/data/modules/mars-azure-metrics-request-builder/newrelic" -}}
+             NEW_RELIC_LICENSE_KEY: {{ .Data.data.NEW_RELIC_LICENSE_KEY }}
+        {{- end }}
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      LOG_FORMAT: json
+      LOG_LEVEL: DEBUG
+      NEW_RELIC_LOG_FILE_NAME: STDOUT
+      NEW_RELIC_LOG_LEVEL: WARN
+      NEW_RELIC_SYNC_STARTUP: true
+      NEW_RELIC_AGENT_ENABLED: true
+      NEW_RELIC_SEND_DATA_ON_EXIT: true
+      NEW_RELIC_SEND_DATA_ON_EXIT_THRESHOLD: 60
+      NEW_RELIC_APP_NAME: mars-azure-metrics-request-builder-dev
+      NEW_RELIC_LABELS: Application:Mars-azure-metrics-request-builder;Org:Lhs;Region:Dal09;Stack:Dev;Namespace:xpp

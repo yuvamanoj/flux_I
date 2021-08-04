@@ -1,0 +1,35 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: hubble-master
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  targetNamespace: horizon
+  releaseName: hubble-master
+  chart:
+    git: git@github.ibm.com:managed-security/hubble-master
+    ref: master
+    path: chart
+  values:
+    service:
+      port: 3000
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/hubble-master
+      tag: 2.0.7-master.9266098d
+    log:
+      level: "debug"
+    config:
+      PORT: 3000
+    serviceAccount:
+      create: true
+    secretsDir: "/vault/secrets"
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/role: "hubble-master"
+      vault.hashicorp.com/agent-inject-secret-cloudant_url: "secret/data/modules/hubble-master/cloudant/global"
+      vault.hashicorp.com/agent-inject-template-cloudant_url: |-
+        {{- with secret "secret/data/modules/hubble-master/cloudant/global" -}}{{- .Data.data.CLOUDANT_URL -}}{{- end }}

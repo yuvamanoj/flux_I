@@ -1,0 +1,57 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: ai-alert-port
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: ai-alert-port
+  forceUpgrade: false
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: ai-alert-port
+    version: 1.0.0-integration
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 300
+    livenessProbe:
+      initialDelaySeconds: 300
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/ai-alert-port
+      tag: 1.0.0-integration.f9c4715f
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.k8s.integration
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'ai-alert-port'
+      vault.hashicorp.com/agent-inject-secret-app.aidb.username: "secret/modules/ai-alert-port/database/ai"
+      vault.hashicorp.com/agent-inject-template-app.aidb.username: |-
+        {{- with secret "secret/modules/ai-alert-port/database/ai" -}}{{- .Data.data.username -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.aidb.password: "secret/modules/ai-alert-port/database/ai"
+      vault.hashicorp.com/agent-inject-template-app.aidb.password: |-
+        {{- with secret "secret/modules/ai-alert-port/database/ai" -}}{{- .Data.data.password -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.aidb.jdbc-url: "secret/modules/ai-alert-port/database/ai"
+      vault.hashicorp.com/agent-inject-template-app.aidb.jdbc-url: |-
+        {{- with secret "secret/modules/ai-alert-port/database/ai" -}}{{- .Data.data.DBURL -}}{{- end }}
+    ingress:
+      enabled: true
+      hosts:
+      - host: ai-alert-port-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - ai-alert-port-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+    config:
+      server:
+        port: 3333

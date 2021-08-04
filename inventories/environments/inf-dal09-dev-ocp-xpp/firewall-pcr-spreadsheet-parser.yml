@@ -1,0 +1,27 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: firewall-pcr-spreadsheet-parser
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: firewall-pcr-spreadsheet-parser
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: firewall-pcr-spreadsheet-parser
+    version: 0.0.1-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/firewall-pcr-spreadsheet-parser
+      tag: 0.0.31-master.a1a45ffc
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here

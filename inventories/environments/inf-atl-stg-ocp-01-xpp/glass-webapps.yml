@@ -1,0 +1,30 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: glass-webapps
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-xps89633connecttoms.*
+spec:
+  releaseName: glass-webapps
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: glass-webapps
+    version: 0.0.4-xps89633connecttoms
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/glass-webapps
+      tag: 0.0.4-xps89633connecttoms.b665521b
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    secretName: glass
+    graphite:
+      enabled: false
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.ocp.xpp
+    config:
+      MSS_API: https://stg-services.sec.ibm.com
+      SEAT_MANAGER_API: https://seat-configuration-ms-xpp.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com/api/v1
+

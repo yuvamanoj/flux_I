@@ -1,0 +1,29 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mdr-cbcloud-puma-drone
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-xps64211*
+spec:
+  releaseName: mdr-cbcloud-puma-drone
+  forceUpgrade: true
+  replicas: 0
+  chart:
+    git: git@github.ibm.com:managed-security/mdr-cbcloud-puma-drone
+    ref: XPS-64211
+    path: mdr-cbcloud-puma-drone
+  values:
+    devices:
+    - PR0000000028524
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/mdr-cbcloud-puma-drone
+      tag: XPS-64211-5c786538
+    secretName: "mdr-cbcloud-puma-drone"
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      SERVICES_BASE_URL: dal09-dev-services.sec.ibm.com
+      SYSLOG_SERVER_IP: dal09-dev-agg-01a.sec.ibm.com
+      SYSLOG_SERVER_PORT: 514

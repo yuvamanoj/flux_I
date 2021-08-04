@@ -1,0 +1,42 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: aws-gw-ui
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-dev.*
+spec:
+  releaseName: aws-gw-ui
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: aws-gw-ui
+    version: 0.1.9-dev
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/aws-gw-ui
+      tag: 0.1.11-dev.ff535fef
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    env:
+      MOCK_API: true
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    serviceAccount:
+      create: true
+    secretsDir: "/vault/secrets"
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/preserve-secret-case: "true"
+      vault.hashicorp.com/role: "aws-gw-ui"
+      vault.hashicorp.com/agent-inject-secret-AWS_ACCESS_KEY_ID: "secret/data/modules/aws-gw-ui/aws"
+      vault.hashicorp.com/agent-inject-template-AWS_ACCESS_KEY_ID: |-
+        {{- with secret "secret/data/modules/aws-gw-ui/aws" -}}{{- .Data.data.AWS_ACCESS_KEY_ID -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-AWS_SECRET_ACCESS_KEY: "secret/data/modules/aws-gw-ui/aws"
+      vault.hashicorp.com/agent-inject-template-AWS_SECRET_ACCESS_KEY: |-
+        {{- with secret "secret/data/modules/aws-gw-ui/aws" -}}{{- .Data.data.AWS_SECRET_ACCESS_KEY -}}{{- end }}
+    # TEMPLATE: Insert other required configuration values here

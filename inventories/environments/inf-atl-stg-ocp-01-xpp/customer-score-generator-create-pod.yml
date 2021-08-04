@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: customer-score-gen-atl-stg-ocp-01-manual-job
+  labels:
+    app: customer-score-gen-atl-stg-ocp-01-manual-job
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  imagePullSecrets:
+    - name: xpp-docker-registry-pull
+  containers:
+    - name: customer-score-gen-atl-stg-ocp-01-manual-job
+      image: mss-docker.artifactory.swg-devops.com/customer-score-generator:1.1.6-master.636d7bf2
+      command: [ "/bin/bash", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+      env:
+        - name: ENV
+          value: stg

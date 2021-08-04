@@ -1,0 +1,69 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: asset-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: asset-ms
+  forceUpgrade: false
+  chart:
+    git: git@github.ibm.com:managed-security/asset-ms
+    ref: v1.0.0
+    path: chart
+  values:
+    log:
+      level: DEBUG
+    readinessProbe:
+      initialDelaySeconds: 45
+    livenessProbe:
+      initialDelaySeconds: 45
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/asset-ms
+      tag: 1.0.0-master.69df12f2
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'asset-ms'
+      vault.hashicorp.com/agent-inject-secret-app.services.admin-token: "secret/modules/asset-ms/services"
+      vault.hashicorp.com/agent-inject-template-app.services.admin-token: |-
+        {{- with secret "secret/modules/asset-ms/services" -}}{{- .Data.data.SERVICES_ADMIN_TOKEN -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.datasource.mss-db-username: "secret/modules/asset-ms/datasource"
+      vault.hashicorp.com/agent-inject-template-app.datasource.mss-db-username: |-
+        {{- with secret "secret/modules/asset-ms/datasource" -}}{{- .Data.data.MSS_DB_USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.datasource.mss-db-password: "secret/modules/asset-ms/datasource"
+      vault.hashicorp.com/agent-inject-template-app.datasource.mss-db-password: |-
+        {{- with secret "secret/modules/asset-ms/datasource" -}}{{- .Data.data.MSS_DB_PASSWORD -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.datasource.vms-db-username: "secret/modules/asset-ms/datasource"
+      vault.hashicorp.com/agent-inject-template-app.datasource.vms-db-username: |-
+        {{- with secret "secret/modules/asset-ms/datasource" -}}{{- .Data.data.VMS_DB_USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.datasource.vms-db-password: "secret/modules/asset-ms/datasource"
+      vault.hashicorp.com/agent-inject-template-app.datasource.vms-db-password: |-
+        {{- with secret "secret/modules/asset-ms/datasource" -}}{{- .Data.data.VMS_DB_PASSWORD -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.security.security-username: "secret/modules/asset-ms/security"
+      vault.hashicorp.com/agent-inject-template-app.security.security-username: |-
+        {{- with secret "secret/modules/asset-ms/security" -}}{{- .Data.data.SECURITY_USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.security.security-password: "secret/modules/asset-ms/security"
+      vault.hashicorp.com/agent-inject-template-app.security.security-password: |-
+        {{- with secret "secret/modules/asset-ms/security" -}}{{- .Data.data.SECURITY_PASSWORD -}}{{- end }}
+    ingress:
+      enabled: true
+      hosts:
+      - host: asset-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - asset-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+        secretName: asset-ms
+    config:
+      asset-ms:
+        mss-datasource:
+          jdbc-url: jdbc:mysql://dal09-dev-mssdb-01a.sec.ibm.com:3306/mss
+        vms-datasource:
+          jdbc-url: jdbc:mysql://dal09-dev-mssdb-01a.sec.ibm.com:3306/vms

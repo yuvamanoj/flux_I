@@ -1,0 +1,50 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: snow-request-processor
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: snow-request-processor
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: snow-request-processor
+    version: 2.0.3-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/snow-request-processor
+      tag: 2.0.3-master.a0545a29
+    graphite:
+      enabled: true
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    secretName: snow-request-processor
+    ingress:
+      enabled: true
+      hosts:
+        - host: snow-request-processor.atl-prd.k8s.sec.ibm.com
+          paths:
+            - /
+      tls:
+        - hosts:
+            - snow-request-processor.atl-prd.k8s.sec.ibm.com
+          secretName: snow-request-processor
+    config:
+      server:
+        port: 3333
+      spring:
+        kafka:
+          bootstrap-servers: atl-prd-kfk-01a.sec.ibm.com:9093,atl-prd-kfk-01b.sec.ibm.com:9093,atl-prd-kfk-01c.sec.ibm.com:9093
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

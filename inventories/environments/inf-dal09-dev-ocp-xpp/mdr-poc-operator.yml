@@ -1,0 +1,32 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mdr-poc-operator
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: mdr-poc-operator
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/mdr-poc-operator
+    ref: master
+    path: chart
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/mdr-poc-operator
+      tag: 0.0.1-master.3b9c5354
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: .5
+      requests:
+        cpu: .25
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here

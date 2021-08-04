@@ -1,0 +1,34 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mss-token-authenticator
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: mss-token-authenticator
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: mss-token-authenticator
+    version: 1.0.22-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/mss-token-authenticator
+      tag: 1.0.22-openshift.6ea222b1
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    route:
+      host: mss-token-authenticator.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com
+    env:
+      env: stg
+      environment: stg
+      es_hosts: atl-stg-eas-01a.sec.ibm.com,atl-stg-eas-01b.sec.ibm.com,atl-stg-eas-01c.sec.ibm.com
+      es_port: 9200
+      es_user: mssesadm
+      vault_role_id: 47a59750-ac04-6c47-d3b9-fbd9912935e2
+      vault_secret_id: b615bcd8-f81c-e69e-bf67-1add3a1183fd
+      vault_path: secret/modules/mss_token_authenticator/
+      vault_url: https://stg-vault.sec.ibm.com:8200

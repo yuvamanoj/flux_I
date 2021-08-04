@@ -1,0 +1,28 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: device-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: device-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: device-ms
+    version: 1.1.42-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/device-ms
+      tag: 1.1.42-openshift.86abe51f
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    env:
+      environment: dev
+      elastic_search_ms: https://es-search-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/es_search
+      remedyUpdateMsUrl: https://remedy-update-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/remedy_update_ms
+    secretDir: /etc/cm-token
+    secretName: cm-token

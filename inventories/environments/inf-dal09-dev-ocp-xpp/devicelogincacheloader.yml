@@ -1,0 +1,27 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: devicelogincacheloader
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-container.*
+spec:
+  releaseName: atl-dev-cc-01-devicelogincacheloader
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: devicelogincacheloader
+    version: 1.1.0-container
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/devicelogincacheloader
+      tag: 1.1.2-container.fb4978d4
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here

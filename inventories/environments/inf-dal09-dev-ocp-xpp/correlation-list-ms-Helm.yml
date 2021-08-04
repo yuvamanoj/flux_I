@@ -1,0 +1,35 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: correlation-list-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: true
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: correlation-list-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: correlation-list-ms
+    version: 1.0.18-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/correlation-list-ms
+      tag: 1.0.18-openshift.d9e93fd9
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    route:
+      host: correlation-list-ms.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com
+    env:
+      environment: dev
+      mysql_uname: portal
+      vault_role_id: e0818daf-c0d3-aa8a-0478-e446112cbd25
+      vault_secret_id: f782ee44-1f32-1b6e-4b29-99b359f60f35
+      vault_path: secret/modules/correlation_list_ms/
+      vault_url: https://dev-vault.sec.ibm.com:8200
+      max_pool_size: 10
+      mysql_port: 3306
+      mysql_db: mss
+      mysql_host: dal09-dev-mssdb-01a.sec.ibm.com

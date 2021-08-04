@@ -1,0 +1,52 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: remedy-menu-item-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: remedy-menu-item-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: remedy-menu-item-ms
+    version: 1.0.4-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/remedy-menu-item-ms
+      tag: 1.0.4-master.28eef8a9
+    graphite:
+      enabled: true
+      host: ruh01-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    secretName: remedy-menu-item-ms
+    ingress:
+      enabled: true
+      hosts:
+        - host: remedy-menu-item-ms.ruh01-prd.k8s.sec.ibm.com
+          paths:
+          - /
+      tls:
+        - hosts:
+            - remedy-menu-item-ms.ruh01-prd.k8s.sec.ibm.com
+          secretName: remedy-menu-item-ms
+    config:
+      server:
+        port: 3333
+      app:
+        elasticSearch:
+          baseUrl: ruh01-prd-eas-01a.sec.ibm.com:9200,ruh01-prd-eas-01b.sec.ibm.com:9200,ruh01-prd-eas-01c.sec.ibm.com:9200
+          indexName: opsmenuitem
+          type: menuitem
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

@@ -1,0 +1,22 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: cp4s-performance-tests
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: cp4s-performance-tests
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: cp4s-performance-tests
+    version: 0.0.19-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/cp4s-performance-tests
+      tag: 0.0.19-master.7a3bc6a9
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull

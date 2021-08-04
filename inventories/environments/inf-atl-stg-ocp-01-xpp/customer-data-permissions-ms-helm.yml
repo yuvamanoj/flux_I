@@ -1,0 +1,28 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: customer-data-permissions-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: customer-data-permissions-ms
+  forceUpgrade: false
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: customer-data-permissions-ms
+    version: 1.1.21-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/customer-data-permissions-ms
+      tag: 1.1.21-openshift.4aa99737
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    route:
+      host: customer-data-permissions-ms.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com
+    env:
+      ENV: stg
+      customer_contact_ms: https://customer-contact-ms.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com/customer_contact
+      elastic_search_ms: https://es-search-ms.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com/es_search

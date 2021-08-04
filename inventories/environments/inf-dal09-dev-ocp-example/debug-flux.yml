@@ -1,0 +1,26 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: debug-flux
+  namespace: example
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: debug-flux
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: debug-flux
+    version: 1.0.0-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/debug-flux
+      tag: 1.0.0-master.45a11821
+    imagePullSecrets:
+    - name: example-docker-registry-pull
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.example

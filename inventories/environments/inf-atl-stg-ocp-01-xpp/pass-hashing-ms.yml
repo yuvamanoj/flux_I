@@ -1,0 +1,33 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: pass-hashing-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: pass-hashing-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: pass-hashing-ms
+    version: 1.1.3-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/pass-hashing-ms
+      tag: 1.1.3-openshift.936e657e
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    route:
+      host: pass-hashing-ms.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com
+    env:
+      vault_url: https://stg-vault.sec.ibm.com:8200
+      vault_role_id: 0dd6a306-d39b-95f2-30ed-b62eaff6e7d8
+      vault_secret_id: 12069b1b-75da-f0ba-b531-026bc7c472d9
+      vault_path: secret/modules/pass-hashing-ms/
+      mysql_db: mss
+      mysql_port: 3306
+      mysql_host: atl-stg-mssdb-02a.routers.svc.cluster.local
+      mysql_maxPoolSize: 10

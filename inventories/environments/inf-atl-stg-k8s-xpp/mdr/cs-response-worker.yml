@@ -1,0 +1,33 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: cs-response-worker
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: cs-response-worker
+  chart:
+    git: git@github.ibm.com:managed-security/cs-response-worker
+    ref: v1.1.2
+    path: chart
+  values:
+    log:
+      level: DEBUG
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/cs-response-worker
+      tag: 1.1.2-xps93023unban.07e5e1c0
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.k8s.xpp
+    secretName: cs-response-worker
+    config:
+      mdr:
+        services:
+          baseUrl: https://stg-services.sec.ibm.com
+          timeoutSeconds: 15
+      spring:
+        kafka:
+          bootstrap-servers: atl-stg-kfk-01a.sec.ibm.com:9093, atl-stg-kfk-01b.sec.ibm.com:9093,atl-stg-kfk-01c.sec.ibm.com:9093

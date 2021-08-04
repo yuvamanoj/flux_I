@@ -1,0 +1,52 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: seat-configuration-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-xps64274.*
+spec:
+  releaseName: seat-configuration-ms
+  forceUpgrade: false
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: seat-configuration-ms
+    version: 0.2.0-xps64274
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/seat-configuration-ms
+      tag: 0.2.0-xps64274.ee590952
+    imagePullSecrets:
+    - name: docker-registry-pull
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+      port: 2003
+    # TEMPLATE: Insert other required configuration values here
+    config:
+      spring:
+        datasource:
+          url: jdbc:mysql://dal09-dev-mssdb-01a.sec.ibm.com:3306/mss?connectTimeout=10000&socketTimeout=300000
+        profiles:
+          active: vault
+        config:
+          location: /vault/secrets/application-vault.properties
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/role: "seat-configuration-ms"
+      vault.hashicorp.com/agent-inject-secret-application-vault.properties: "secret/modules/seat-configuration-ms/database"
+      vault.hashicorp.com/agent-inject-template-application-vault.properties: |
+        {{ with secret "secret/modules/seat-configuration-ms/database" -}}
+        spring.datasource.username={{- .Data.data.mss_write_username }}
+        spring.datasource.password={{- .Data.data.mss_write_password }}
+        {{- end }}
+      vault.hashicorp.com/agent-inject-secret-application-service.properties: "secret/modules/seat-configuration-ms/services"
+      vault.hashicorp.com/agent-inject-template-application-service.properties: |-
+        {{ with secret "secret/modules/seat-configuration-ms/services" -}}
+        spring.security.user.password={{- .Data.data.services_client_system_call_token }}
+        {{- end }}

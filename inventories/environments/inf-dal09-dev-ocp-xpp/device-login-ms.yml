@@ -1,0 +1,31 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: device-login-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: device-login-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: device-login-ms
+    version: 1.0.39-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/device-login-ms
+      tag: 1.0.39-openshift.9986a669
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull    
+    env:
+      ENV: dev
+      environment: dev
+      es_urls: http://dal09-dev-solr-01a.sec.ibm.com:9200,http://dal09-dev-solr-01b.sec.ibm.com:9200,http://dal09-dev-solr-01c.sec.ibm.com:9200
+      es_user: mssesadm
+      vault_role_id: 54972f3b-e9d1-195f-b73a-10534f975eea
+      vault_secret_id: 4a2f0c47-8d05-bfb2-d52c-b4860c51d625
+      vault_path: secret/modules/device_login_ms/
+      vault_url: https://dev-vault.sec.ibm.com:8200

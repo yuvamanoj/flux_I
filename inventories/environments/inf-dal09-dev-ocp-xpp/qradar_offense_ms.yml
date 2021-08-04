@@ -1,0 +1,32 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: qradar-offense-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-springbootconv.*
+spec:
+  releaseName: qradar-offense-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: snow-update-listener
+    version: 0.0.1-springbootconv
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/qradar_offense_ms
+      tag: 0.0.1-springbootconv.f24e12c8
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    ingress:
+      enabled: false
+    route:
+      enabled: true
+      host: qradar-offense-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

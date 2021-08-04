@@ -1,0 +1,43 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mdr-ares-doctor
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: mdr-ares-doctor
+  chart:
+    git: git@github.ibm.com:managed-security/mdr-ares-doctor
+    ref: v0.0.1
+    path: chart
+  values:
+    log:
+      level: DEBUG
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/mdr-ares-doctor
+      tag: 0.0.1
+    graphite:
+      enabled: true
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    secretName: mdr-ares-doctor
+    config:
+      mdr:
+        cronExpression: "0 0 0/4 * * *"
+        topic: "auto-response-request"
+        actionType: "HEARTBEAT"
+        actionTarget: "HEARTBEAT_IGNORE_THIS"
+        deviceId:
+          - "PR0000000028479"
+          - "PR0000000028524"
+          - "PR0000000028525"
+          - "PR0000000033359"
+          - "PR0000000035645"
+        ticketId: "0"
+        alertId: "0"
+        alertCreateTimeInSeconds: "0"
+      spring:
+        kafka:
+          bootstrap-servers: atl-prd-kfk-01a.sec.ibm.com:9093, atl-prd-kfk-01b.sec.ibm.com:9093,atl-prd-kfk-01c.sec.ibm.com:9093

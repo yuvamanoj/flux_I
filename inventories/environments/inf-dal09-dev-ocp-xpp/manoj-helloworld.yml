@@ -1,0 +1,32 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: manoj-helloworld
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: manoj-helloworld
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: manoj-helloworld
+    version: 1.0.0-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/manoj-helloworld
+      tag: 1.0.0-master.8a3dad14
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    readinessProbe:
+      initialDelaySeconds: 300
+      periodSeconds: 20
+    livenessProbe:
+      initialDelaySeconds: 300
+      periodSeconds: 20

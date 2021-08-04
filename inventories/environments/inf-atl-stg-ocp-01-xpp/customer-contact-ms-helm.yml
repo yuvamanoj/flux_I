@@ -1,0 +1,32 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: customer-contact-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: customer-contact-ms
+  forceUpgrade: false
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: customer-contact-ms
+    version: 1.0.99-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/customer-contact-ms
+      tag: 1.0.99-openshift.c32113a3
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    route:
+      host: customer-contact-ms.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com
+    env:
+      environment: stg
+      elastic_search_ms: https://es-search-ms.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com/es_search
+      remedyUpdateMsUrl: https://remedy-update-ms.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com/remedy_update_ms
+      system_only_fields: failedLoginCount
+      default_removed_fields: password,passPhrase
+      esIndexName: hdcustomerdetail
+      esIndexType: customercontact

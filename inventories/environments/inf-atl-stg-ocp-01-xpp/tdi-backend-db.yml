@@ -1,0 +1,36 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: tdi-backend-db
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-ctgit0001.*
+spec:
+  releaseName: tdi-backend-db
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: tdi-backend-db
+    version: 0.1.2
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/tdi-backend-db
+      tag: 0.1.2-ctgit0001.fa4743b3
+    resources:
+      limits:
+        cpu: 6
+      requests:
+        cpu: 4
+    secretName: tdi-backend-db-stg-secrets
+    replicaCount: 1
+    autoscaling:
+      minReplicas: 1
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: false
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here

@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: signaturecategtool-running-atl-stg-ocp-01
+  labels:
+    app: signaturecategtool-running-atl-stg-ocp-01
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+  
+spec:
+  imagePullSecrets:
+    - name: xpp-docker-registry-pull
+  volumes:
+    - name: sigcategtool-pvc
+      persistentVolumeClaim:
+        claimName: signaturecategorizationtool
+  containers:
+    - name: sigcattool-pvcpod-job-atl-stg-ocp-01
+      image: mss-docker.artifactory.swg-devops.com/signaturecategorizationtool:1.3.1-master.ea781349
+      command: [ "/bin/bash", "-c", "--" ]
+      volumeMounts:
+        - name: sigcategtool-pvc
+          mountPath: "/opt/mssdev/SignatureCategorizationTool/bin/data/"
+      args: [ "while true; do sleep 30; done;" ]
+

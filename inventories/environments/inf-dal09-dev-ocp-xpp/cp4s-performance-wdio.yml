@@ -1,0 +1,22 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: cp4s-performance-wdio
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: cp4s-performance-wdio
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: cp4s-performance-wdio
+    version: 0.0.1-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/cp4s-performance-wdio
+      tag: 0.1.0-master.717647f2
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull

@@ -1,0 +1,42 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: xpsws-gateway
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: xpsws-gateway
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: xpsws-gateway
+    version: 1.5.11-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/xpsws-gateway
+      tag: 1.5.13-master.d2b9545a
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: .5
+      requests:
+        cpu: .25
+    graphite:
+      enabled: false
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.ocp.xpp
+    secretName: xpsws-gateway
+    route:
+      enabled: true
+      host: xpsws-gateway.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com
+    env:
+      environment: ocp-stg
+      es_urls: https://atl-stg-esmasdata-02a.sec.ibm.com:9200,https://atl-stg-esmasdata-02b.sec.ibm.com:9200,https://atl-stg-esmasdata-02c.sec.ibm.com:9200
+      es_user: mssesadm
+      jwt_provider_url: https://jwt-provider.atl-stg.k8s.sec.ibm.com
+      vault_url: https://stg-vault.sec.ibm.com:8200
+      vault_path: secret/modules/xpsws-gateway/

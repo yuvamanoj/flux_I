@@ -1,0 +1,72 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: athena-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: athena-ms
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: athena-ms
+    version: 0.0.2-integration
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/athena-ms
+      tag: 0.0.2-integration.a0136ddb
+    ingress:
+      enabled: true
+      hosts:
+      - host: athena-ms-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - athena-ms-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+        secretName: athena-ms
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'athena-ms'
+      vault.hashicorp.com/agent-inject-secret-mdr.aidb-username: "secret/modules/athena-ms/aidb"
+      vault.hashicorp.com/agent-inject-template-mdr.aidb-username: |-
+        {{- with secret "secret/modules/athena-ms/aidb" -}}{{- .Data.data.username -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-mdr.aidb-password: "secret/modules/athena-ms/aidb"
+      vault.hashicorp.com/agent-inject-template-mdr.aidb-password: |-
+        {{- with secret "secret/modules/athena-ms/aidb" -}}{{- .Data.data.password -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-mdr.neo4j-username: "secret/modules/athena-ms/neo4j"
+      vault.hashicorp.com/agent-inject-template-mdr.neo4j-username: |-
+        {{- with secret "secret/modules/athena-ms/neo4j" -}}{{- .Data.data.username -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-mdr.neo4j-password: "secret/modules/athena-ms/neo4j"
+      vault.hashicorp.com/agent-inject-template-mdr.neo4j-password: |-
+        {{- with secret "secret/modules/athena-ms/neo4j" -}}{{- .Data.data.password -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-mdr.xforce-token: "secret/modules/athena-ms/xforce-intelligence"
+      vault.hashicorp.com/agent-inject-template-mdr.xforce-token: |-
+        {{- with secret "secret/modules/athena-ms/xforce-intelligence" -}}{{- .Data.data.token -}}{{- end }}
+    readinessProbe:
+      exec:
+        command:
+        - sh
+        - -c
+        - curl --fail http://localhost:3333/health/ready
+      failureThreshold: 4
+      initialDelaySeconds: 60
+      periodSeconds: 15
+      successThreshold: 1
+      timeoutSeconds: 1
+    livenessProbe:
+      exec:
+        command:
+        - sh
+        - -c
+        - curl --fail http://localhost:3333/health/alive
+      failureThreshold: 4
+      initialDelaySeconds: 60
+      periodSeconds: 15
+      successThreshold: 1
+      timeoutSeconds: 1

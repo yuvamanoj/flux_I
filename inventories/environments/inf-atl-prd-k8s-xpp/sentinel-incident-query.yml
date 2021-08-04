@@ -1,0 +1,57 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: sentinel-incident-query
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: semver:1.0.6
+spec:
+  releaseName: sentinel-incident-query
+  forceUpgrade: false
+  chart:
+    git: git@github.ibm.com:managed-security/sentinel-incident-query
+    ref: v1.0.6
+    path: chart
+  values:
+    replicaCount: 1
+    revisionHistoryLimit: 1
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/sentinel-incident-query
+      tag: 1.0.6
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    route:
+      enabled: false
+    ingress:
+      enabled: true
+      hosts:
+      - host: sentinel-incident-query.atl-prd.k8s.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - sentinel-incident-query.atl-prd.k8s.sec.ibm.com
+    secretName: sentinel-incident-query
+    imagePullSecrets:
+    - name: docker-registry-pull
+    config:
+      app:
+        services:
+          baseUrl: https://services.sec.ibm.com
+          timeoutSeconds: 50
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      LOG_FORMAT: json
+      LOG_LEVEL: DEBUG
+      NEW_RELIC_LOG_FILE_NAME: STDOUT
+      NEW_RELIC_LOG_LEVEL: WARN
+      NEW_RELIC_SYNC_STARTUP: true
+      NEW_RELIC_AGENT_ENABLED: true
+      NEW_RELIC_SEND_DATA_ON_EXIT: true
+      NEW_RELIC_SEND_DATA_ON_EXIT_THRESHOLD: 60
+      NEW_RELIC_APP_NAME: sentinel-incident-query-prd
+      NEW_RELIC_LABELS: Application:Sentinel-incident-query;Org:Lhs;Region:Atl;Stack:Prd;Namespace:master

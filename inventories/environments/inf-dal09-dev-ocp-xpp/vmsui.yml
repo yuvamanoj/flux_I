@@ -1,0 +1,36 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: vmsui
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-devtest.*
+spec:
+  releaseName: vmsui
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/vmsui
+    ref: dev-test
+    path: chart
+  values:
+    config:
+      API_URL: http://vmsui-api:8080
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/vmsui
+      tag: 2020.12.14-devtest.e8c7def7
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: .5
+      requests:
+        cpu: .25
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+      port: 2003
+
+# TEMPLATE: Insert other required configuration values here

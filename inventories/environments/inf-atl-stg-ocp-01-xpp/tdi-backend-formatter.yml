@@ -1,0 +1,32 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: tdi-backend-formatter
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: tdi-backend-formatter
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: tdi-backend-formatter
+    version: 0.1.1-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/tdi-backend-formatter
+      tag: 0.1.1-master.b8b787a9
+    resources:
+      limits:
+        cpu: 2
+      requests:
+        cpu: 1
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: false
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here

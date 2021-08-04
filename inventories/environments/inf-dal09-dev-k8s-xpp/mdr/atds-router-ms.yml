@@ -1,0 +1,46 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: atds-router-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-xps82835.*
+spec:
+  releaseName: atds-router-ms
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/atds-router-ms
+    ref: XPS-82835
+    path: chart
+  values:
+    replicaCount: 1
+    revisionHistoryLimit: 1
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/atds-router-ms
+      tag: 0.0.1-xps82835.3ab5fa24
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.k8s.master
+    secretName: atds-router-ms
+    ingress:
+      enabled: true
+      hosts:
+      - host: atds-router-ms-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - atds-router-ms-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+        secretName: atds-router-ms
+    config:
+      atds:
+        services:
+          baseUrl: https://dal09-dev-services.sec.ibm.com
+          timeoutSeconds: 30
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      LOG_FORMAT: json
+      LOG_LEVEL: DEBUG

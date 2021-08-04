@@ -1,0 +1,32 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mss-sonar-vulns
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: mss-sonar-vulns
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/mss-sonar-vulns
+    ref: master
+    path: chart
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/mss-sonar-vulns
+      tag: 0.1.5-integration.0224a6f4
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: .5
+      requests:
+        cpu: .25
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here

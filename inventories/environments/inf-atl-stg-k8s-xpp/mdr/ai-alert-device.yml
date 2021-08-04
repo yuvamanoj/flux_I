@@ -1,0 +1,59 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: ai-alert-device
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: ai-alert-device
+  forceUpgrade: false
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: ai-alert-device
+    version: 1.0.3-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 300
+    livenessProbe:
+      initialDelaySeconds: 300
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/ai-alert-device
+      tag: 1.0.3-master.17b90c2b
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.k8s.xpp
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/role: "ai-alert-device"
+      vault.hashicorp.com/preserve-secret-case: "true"
+      vault.hashicorp.com/agent-inject-secret-mdr.database.username: "secret/modules/ai-alert-device/database"
+      vault.hashicorp.com/agent-inject-template-mdr.database.username: |-
+        {{- with secret "secret/modules/ai-alert-device/database" -}}{{- .Data.data.ai_db_username -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-mdr.database.password: "secret/modules/ai-alert-device/database"
+      vault.hashicorp.com/agent-inject-template-mdr.database.password: |-
+        {{- with secret "secret/modules/ai-alert-device/database" -}}{{- .Data.data.ai_db_password -}}{{- end }}
+    ingress:
+      enabled: true
+      hosts:
+      - host: ai-alert-device-ms-atl-stg.k8s.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - ai-alert-device-ms-atl-stg.k8s.sec.ibm.com
+    config:
+      server:
+        port: 3333
+      mdr:
+        database:
+          jdbc-url: jdbc:mysql://atl-stg-aidb-01a.mss.iss.net:3306/ai?connectTimeout=10000&socketTimeout=300000&useSSL=true&requireSSL=true&verifyServerCertificate=false
+

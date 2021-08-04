@@ -1,0 +1,42 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: resilient-forwarder
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master*
+spec:
+  releaseName: resilient-forwarder
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: resilient-forwarder
+    version: 1.0.1-master
+  values:
+    replicaCount: 1
+    revisionHistoryLimit: 1
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/resilient-forwarder
+      tag: 1.1.2-master.6ea0d020
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.k8s.xpp
+    secretName: resilient-forwarder
+    config:
+      mdr:
+        services:
+          baseUrl: https://dal09-dev-services.sec.ibm.com
+          timeoutSeconds: 15
+        resilient:
+          baseUrl: atl-dev-resdemo-01a.sec.ibm.com
+          orgId: 204
+      spring:
+        kafka:
+          bootstrap-servers: dal09-dev-kfk-01a.sec.ibm.com:9093,dal09-dev-kfk-01b.sec.ibm.com:9093,dal09-dev-kfk-01c.sec.ibm.com:9093
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      LOG_FORMAT: json
+      LOG_LEVEL: DEBUG

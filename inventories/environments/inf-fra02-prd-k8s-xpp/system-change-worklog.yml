@@ -1,0 +1,62 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: system-change-worklog
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: system-change-worklog
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: system-change-worklog
+    version: 1.0.0-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/system-change-worklog
+      tag: 1.0.0-master.4882d288
+    graphite:
+      enabled: true
+      host: fra02-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    ingress:
+      enabled: true
+      hosts:
+      - host: system-change-worklog.fra02-prd.k8s.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - system-change-worklog.fra02-prd.k8s.sec.ibm.com
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'system-change-worklog'
+      vault.hashicorp.com/agent-inject-secret-app.mssDatasource.username: "secret/modules/system-change-worklog/mss-datasource"
+      vault.hashicorp.com/agent-inject-template-app.mssDatasource.username: |-
+        {{- with secret "secret/modules/system-change-worklog/mss-datasource" -}}{{- .Data.data.USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.mssDatasource.password: "secret/modules/system-change-worklog/mss-datasource"
+      vault.hashicorp.com/agent-inject-template-app.mssDatasource.password: |-
+        {{- with secret "secret/modules/system-change-worklog/mss-datasource" -}}{{- .Data.data.PASSWORD -}}{{- end }}
+    config:
+      server:
+        port: 3333
+      app:
+        mssDatasource:
+          jdbcUrl: jdbc:mysql://fra02-prd-aidb-01a.sec.ibm.com:3306/ai
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG
+

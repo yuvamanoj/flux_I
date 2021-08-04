@@ -1,0 +1,22 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: javacron-1
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: javacron-1
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/testjavacron
+    ref: master
+    path: chart
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/testjavacron
+      tag: 0.0.2-master.8d9ff8ad
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull

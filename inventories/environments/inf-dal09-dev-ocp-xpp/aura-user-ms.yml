@@ -1,0 +1,29 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: aura-user-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-dev.*
+spec:
+  releaseName: aura-user-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: aura-user-ms
+    version: 0.0.2-dev
+  values:
+    config:
+      SPRING_PROFILES_ACTIVE: 'dal09-dev'
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/aura-user-ms
+      tag: 0.0.2-dev.35a74aed
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here

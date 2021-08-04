@@ -1,0 +1,35 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: resilient-forwarder
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: resilient-forwarder
+  chart:
+    git: git@github.ibm.com:managed-security/resilient-forwarder
+    ref: v1.1.2
+    path: chart
+  values:
+    log:
+      level: DEBUG
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/resilient-forwarder
+      tag: 1.1.2
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.k8s.xpp
+    secretName: resilient-forwarder
+    config:
+      mdr:
+        services:
+          baseUrl: https://stg-services.sec.ibm.com
+        resilient:
+          baseUrl: atl-dev-resdemo-01a.sec.ibm.com
+          orgId: 204
+      spring:
+        kafka:
+          bootstrap-servers: atl-stg-kfk-01a.sec.ibm.com:9093,atl-stg-kfk-01b.sec.ibm.com:9093,atl-stg-kfk-01c.sec.ibm.com:9093

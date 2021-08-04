@@ -1,0 +1,27 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: user-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: user-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: user-ms
+    version: 0.0.10-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/user-ms
+      tag: 0.0.10-openshift.ae91d5e2
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    route:
+      host: user-ms.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com
+    env:
+      ENV: stg
+      elastic_search_ms: https://es-search-ms.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com/es_search

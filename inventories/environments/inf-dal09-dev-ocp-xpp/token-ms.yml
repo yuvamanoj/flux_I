@@ -1,0 +1,38 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: token-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: token-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: token-ms
+    version: 1.0.7-openshift
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/token-ms
+      tag: 1.0.7-openshift.8a6e0213
+    secretName: token-ms
+    route:
+      enabled: true
+    config:
+      server:
+        port: 3333
+      token-ms:
+        mss-datasource:
+          jdbc-url: jdbc:mysql://dal09-dev-mssdb-01a.sec.ibm.com:3306/mss
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

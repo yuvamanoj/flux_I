@@ -1,0 +1,62 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: soc-infrastruct-asset-tracking-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: soc-infrastruct-asset-tracking-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: soc-infrastruct-asset-tracking-ms
+    version: 1.0.5-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 120
+    livenessProbe:
+      initialDelaySeconds: 120
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/soc-infrastruct-asset-tracking-ms
+      tag: 1.0.5-master.02c87e58
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.k8s.xpp
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'soc-infrastruct-asset-tracking-ms'
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.username: "secret/modules/soc-infrastruct-asset-tracking-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.username: |-
+        {{- with secret "secret/modules/soc-infrastruct-asset-tracking-ms/elastic-search" -}}{{- .Data.data.ELASTICSEARCH_USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.password: "secret/modules/soc-infrastruct-asset-tracking-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.password: |-
+        {{- with secret "secret/modules/soc-infrastruct-asset-tracking-ms/elastic-search" -}}{{- .Data.data.ELASTICSEARCH_PASSWORD -}}{{- end }}
+    ingress:
+      enabled: true
+      hosts:
+        - host: soc-infrastruct-asset-tracking-ms.atl-stg.k8s.sec.ibm.com
+          paths:
+            - /
+      tls:
+        - hosts:
+            - soc-infrastruct-asset-tracking-ms.atl-stg.k8s.sec.ibm.com
+    config:
+      server:
+        port: 3333
+      app:
+        elasticSearch:
+          baseUrl: atl-stg-eas-01a.sec.ibm.com:9200,atl-stg-eas-01b.sec.ibm.com:9200,atl-stg-eas-01c.sec.ibm.com:9200
+          indexName: socinfrastructassettracking
+          type: infrastructassettracking
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

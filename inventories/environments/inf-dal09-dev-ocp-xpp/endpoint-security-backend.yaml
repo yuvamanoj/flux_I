@@ -1,0 +1,36 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: endpoint-security-backend
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-policyreview.*
+spec:
+  releaseName: endpoint-security-backend
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: endpoint-security-backend
+    version: 0.0.2
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/endpoint-security-backend
+      tag: 0.0.2-policyreview.a7a546b0
+    route:
+      enabled: true
+    resources:
+      limits:
+        cpu: 4
+        memory: 2Gi
+      requests:
+        cpu: 2
+        memory: 1Gi
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      :WQprefix: dev.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here

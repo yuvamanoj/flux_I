@@ -1,0 +1,35 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: remedy-update-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: remedy-update-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: remedy-update-ms
+    version: 1.0.2-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/remedy-update-ms
+      tag: 1.0.2-openshift.52770cc9
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    env:
+      environment: dev
+      processor.threadCount: 2
+      kafkaGroup: RemedyUpdater
+      kafkaTopic: RemedyUpdateQueue
+      remedy.jwt.updatePeriod.minutes: 55
+      remedy.baseUrl: http://dev-remedy9.sec.ibm.com:8008
+      remedy.user: microservices_remedy_1
+      vault_role_id: 4b64c9fa-fd45-0c76-5c19-13fb7cace70d
+      vault_secret_id: a6717482-15a6-6ed5-fc51-ab0db4d97ee4
+      vault_path: secret/modules/remedy_update_ms/
+      vault_url: https://dev-vault.sec.ibm.com:8200
+      jwt.provider.url: https://jwt-provider-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/jwt_provider

@@ -1,0 +1,33 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: ecd-file-upload-automation
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: ecd-file-upload-automation
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: ecd-file-upload-automation
+    version: 0.0.3-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/ecd-file-upload-automation
+      tag: 0.0.4-master.d5dd376f
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: true
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here
+    config:
+      spring:
+        profiles:
+          active: stage
+        datasource:
+          url: "jdbc:db2://02a3be17-3906-4e5a-98e4-33120532a590.bu6tc4nd0urletsa6ufg.databases.appdomain.cloud:32054/BLUDB:currentSchema=STG;sslConnection=true;"

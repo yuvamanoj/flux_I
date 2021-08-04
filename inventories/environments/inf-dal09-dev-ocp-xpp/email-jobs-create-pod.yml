@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: email-jobs-dal09-dev-ocp
+  labels:
+    app: email-jobs-dal09-dev-ocp
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-container.*
+spec:
+  imagePullSecrets:
+    - name: xpp-docker-registry-pull
+  containers:
+    - name: email-jobs-dal09-dev-ocp
+      image: mss-docker.artifactory.swg-devops.com/email_jobs:1.0.21-container.2ab9e9e0
+      env: 
+        - name: MSS_LOCAL_PROPS
+          value: /appData/application.global.properties
+      command: [ "/bin/bash", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+      volumeMounts:
+        - name: config-volume
+          mountPath: /appData/application.global.properties
+          subPath: globalProps
+        - name: config-volume
+          mountPath: /appData/email_jobs/application.properties
+          subPath: localProps
+  volumes:
+    - name: config-volume
+      configMap: 
+        name: mss-app-configmap
+        items:
+          - key: application.global.properties
+            path: globalProps
+          - key: email_jobs-application.properties
+            path: localProps

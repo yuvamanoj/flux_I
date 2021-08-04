@@ -1,0 +1,49 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: ai-alert-rule-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: ai-alert-rule-ms
+  forceUpgrade: false
+  chart:
+    git: git@github.ibm.com:managed-security/ai-alert-rule-ms
+    ref: integration
+    path: chart
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/ai-alert-rule-ms
+      tag: 0.0.3-integration.abb73fb7
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.k8s.integration
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'ai-alert-rule-ms'
+      vault.hashicorp.com/agent-inject-secret-app.aidb.username: "secret/modules/ai-alert-rule-ms/datasource/ai"
+      vault.hashicorp.com/agent-inject-template-app.aidb.username: |-
+        {{- with secret "secret/modules/ai-alert-rule-ms/datasource/ai" -}}{{- .Data.data.USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.aidb.password: "secret/modules/ai-alert-rule-ms/datasource/ai"
+      vault.hashicorp.com/agent-inject-template-app.aidb.password: |-
+        {{- with secret "secret/modules/ai-alert-rule-ms/datasource/ai" -}}{{- .Data.data.PASSWORD -}}{{- end }}
+    ingress:
+      enabled: true
+      hosts:
+      - host: ai-alert-rule-ms.atl-stg.k8s.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - ai-alert-rule-ms.atl-stg.k8s.sec.ibm.com
+    config:
+      app:
+        aidb:
+          jdbcurl: jdbc:mysql://atl-stg-aidb-01.sec.ibm.com:3306/ai

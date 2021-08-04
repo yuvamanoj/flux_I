@@ -1,0 +1,32 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: sentinel-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-develop.*
+spec:
+  releaseName: sentinel-ms
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/sentinel-ms
+    ref: develop
+    path: chart
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/sentinel-ms
+      tag: 0.0.1-develop.f4e13aec
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: .5
+      requests:
+        cpu: .25
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here

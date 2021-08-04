@@ -1,0 +1,154 @@
+---
+# Source: health-alert/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: dev-health-alert
+  labels:
+    helm.sh/chart: health-alert-0.1.0
+    app.kubernetes.io/name: health-alert
+    app.kubernetes.io/instance: health-alert-release
+    app.kubernetes.io/version: "0.0.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app.kubernetes.io/name: health-alert
+    app.kubernetes.io/instance: health-alert-release
+---
+# Source: health-alert/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev-health-alert
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+  labels:
+    helm.sh/chart: health-alert-0.1.0
+    app.kubernetes.io/name: health-alert
+    app.kubernetes.io/instance: health-alert-release
+    app.kubernetes.io/version: "0.0.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: health-alert
+      app.kubernetes.io/instance: health-alert-release
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: health-alert
+        app.kubernetes.io/instance: health-alert-release
+      annotations:
+        sidecar.istio.io/inject: "false"
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "3000"
+    spec:
+      imagePullSecrets:
+      - name: xpp-docker-registry-pull
+      serviceAccountName: default
+      securityContext: {}
+      containers:
+      - name: health-alert
+        securityContext: {}
+        image: "mss-docker.artifactory.swg-devops.com/health_alert:0.0.14"
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+          protocol: TCP
+
+        readinessProbe:
+          httpGet:
+            path: /check
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+
+        livenessProbe:
+          httpGet:
+            path: /check
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+
+        resources:
+          limits:
+            cpu: 1
+            memory: 256Mi
+          requests:
+            cpu: 0.5
+            memory: 128Mi
+
+        env:
+            # - name: LOG_LEVEL
+            #   value: info
+            # - name: LOG_FORMAT
+            #   value: json
+        - name: kafka_topic
+          value: sf_health_alert
+        - name: env
+          value: dev
+        - name: vault_role_id
+          value: a1a3939b-581b-1b8c-fae1-d825682c17e4
+        - name: vault_secret_id
+          value: 3fa46d43-e298-d248-3f15-f3beb3025824
+        - name: vault_path
+          value: secret/modules/health_alert/
+        - name: vault_url
+          value: https://dev-vault.sec.ibm.com:8200
+        - name: SECRETS_DIR
+          value: /opt/app/secrets.d
+        volumeMounts:
+            # - name: secret
+            #   mountPath: /opt/app/secrets.d
+            #   readOnly: true 
+            # - name: config
+            #   #  mountPath: "/etc/config"
+            #   mountPath: /opt/app/application.yml
+            #   subPath: config
+            #   readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: dev-health-alert
+        # - name: secret
+        #   secret:
+        #     secretName: health-alert-secret
+        #     items:
+        #       - key: USERNAME
+        #         path: username
+        #       - key: PASSWORD
+        #         path: password
+---
+# Source: health-alert/templates/route.yaml
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: dev-health-alert
+  labels:
+    helm.sh/chart: health-alert-0.1.0
+    app.kubernetes.io/name: health-alert
+    app.kubernetes.io/instance: dev
+    app.kubernetes.io/version: "0.0.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  to:
+    kind: Service
+    name: dev-health-alert
+    weight: 100
+  wildcardPolicy: None

@@ -1,0 +1,30 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: signaturecategtool-buildindex-atl-prd-ocp-01
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: signaturecategtool-buildindex-atl-prd-ocp-01
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: signaturecategorizationtool
+    version: 1.3.1-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/signaturecategorizationtool
+      tag: 1.3.1-master.ea781349
+    imagePullSecrets:
+    - name: docker-registry-pull
+    schedule: "0 19 * * 5"
+    args:
+    - /opt/mssdev/SignatureCategorizationTool/bin/SignatureCategorizationTool.sh
+    - buildindex
+    - input=service
+    - categoryFilter=only_non_empty
+    - descriptionFilter=only_non_empty
+    

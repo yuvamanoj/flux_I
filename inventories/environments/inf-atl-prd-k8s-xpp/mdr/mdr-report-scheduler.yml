@@ -1,0 +1,47 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mdr-report-scheduler
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: mdr-report-scheduler
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: mdr-report-scheduler
+    version: 0.0.3
+  values:
+    replicaCount: 1
+    revisionHistoryLimit: 1
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/mdr-report-scheduler
+      tag: 0.0.3
+    graphite:
+      enabled: true
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    secretName: mdr-report-scheduler
+    config:
+      mdr:
+        agentReportCronExpression: "0 0 1 * * fri"
+        heartbeatCronExpression: "0 0 */4 * * *"
+        machinePlatforms:
+        - "CrowdStrike Falcon"
+        - "CB Cloud Single Tenant Response"
+        - "CB CPE Response"
+        - "CB Cloud Multi-tenant"
+        - "Microsoft Defender ATP"
+        - "Cybereason"
+        services:
+          baseUrl: https://services.sec.ibm.com
+          timeoutSeconds: 60
+      spring:
+        kafka:
+          bootstrap-servers: atl-prd-kfk-01a.sec.ibm.com:9093,atl-prd-kfk-01b.sec.ibm.com:9093,atl-prd-kfk-01c.sec.ibm.com:9093
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      LOG_FORMAT: json
+      LOG_LEVEL: DEBUG

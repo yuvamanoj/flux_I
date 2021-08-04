@@ -1,0 +1,50 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: qradar-log-source-correlation-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: qradar-log-source-correlation-ms
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/qradar-log-source-correlation-ms
+    ref: integration
+    path: chart
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/qradar-log-source-correlation-ms
+      tag: 1.0.0-integration.153bae67
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: 2.0
+      requests:
+        cpu: 1.25
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    log:
+      level: INFO
+      format: plain
+    config:
+      app:
+        messaging-url: 'pulsar://pulsar-proxy.pulsar.svc.cluster.local:6650'
+        lms-log-source-url: 'http://lms-log-source-ms.xpp.svc.cluster.local/'
+        outbound-topic-name: 'qradar-raw-device-traffic'
+        unknown-topic-name: 'unknown-traffic'
+        inbound-topic-name: 'qradar-raw-traffic'
+        inbound-subscription-name: 'qradar-device-correlation'
+        inbound-subscription-type: 'Failover'
+        key-fields:
+        - 'domainID'
+        - 'deploymentID'
+        - 'logSource'
+        - 'logSourceType'
+        - 'logSourceIdentifier'
+        - 'externalIp'

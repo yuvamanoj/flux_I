@@ -1,0 +1,38 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: permissions-engine
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: permissions-engine
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: permissions-engine
+    version: 1.2.48-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/permissions-engine
+      tag: 1.2.48-openshift.3cf7feca
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    route:
+      host: permissions-engine.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com
+    env:
+      ENV: stg
+      vault_url: https://stg-vault.sec.ibm.com:8200
+      vault_role_id: a0dbb38c-f370-ac1e-7e97-ed4a65f01cf6
+      vault_secret_id: ac16d409-ac1a-2577-b7f0-4affb5136014
+      vault_path: secret/modules/permissions_engine/
+      services_host_http_invoker_url: https://stg-services.mss.iss.net/remoting
+      elastic_search_client_transport_hosts: atl-stg-eas-01a.sec.ibm.com,atl-stg-eas-01b.sec.ibm.com,atl-stg-eas-01c.sec.ibm.com
+      elastic_search_cluster_name: xps-atl-stg
+      elastic_search_mss_ssl_server_keyStore: /opt/mssdev/permissions_engine/conf/esclientkeystore
+      elastic_search_mss_ssl_server_trustStore: /opt/mssdev/permissions_engine/conf/esclienttruststore
+      kafka_bootstrap_servers: atl-stg-kfk-01a.sec.ibm.com:9093,atl-stg-kfk-01b.sec.ibm.com:9093,atl-stg-kfk-01c.sec.ibm.com:9093
+      kafka_ssl_truststore_location: /opt/mssdev/permissions_engine/conf/dev_kafka.truststore.jks
+      kafka_ssl_keystore_location: /opt/mssdev/permissions_engine/conf/dev_kafka.client_keystore.jks

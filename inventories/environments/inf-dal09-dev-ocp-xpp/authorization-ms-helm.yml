@@ -1,0 +1,30 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: authorization-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: authorization-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: authorization-ms
+    version: 1.1.20-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/authorization-ms
+      tag: 1.1.20-openshift.967b0418
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    route:
+      host: authorization-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com
+    env:
+      ENV: dev
+      services_host_rest_url: https://dal09-dev-services.sec.ibm.com/rest
+      customer_contact_ms: https://customer-contact-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/customer_contact
+      elastic_search_ms: https://es-search-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/es_search
+

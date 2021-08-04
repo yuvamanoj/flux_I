@@ -1,0 +1,27 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: databaserepicationreport
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: databasereplicationreport-stg
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: databasereplicationreport
+    version: 1.1.2-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/databasereplicationreport
+      tag: 1.1.2-master.044c09f9
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    env:
+    - name: RUN_LIST_ENABLED
+      value: "true"
+    - name: RUN_LIST_FREQUENCY
+      value: "1800"

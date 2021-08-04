@@ -1,0 +1,143 @@
+apiVersion: v1
+data:
+  dbrep-xforce-config.yml: ""
+  readme.md: "##### Background\r\n- Existing xforce-mss-replication.xml uses FullReplicationWithPagingTask
+    that runs the replication one after the other and consumes high resource and memory.\r\n-
+    To enhance this feature, new version of FullReplicationWithPagingTask is introduced
+    in v1 package.\r\n- This directory contains the context files which points to
+    v1 component via xforce-mss-replication-base.xml\r\n\r\n##### How to run jobs
+    with v1 component\r\n- Trigger the job using XforceToMssReplication-parallel.sh\r\n-
+    Set the environment variable JOB_INDEX as follows.\r\n    - Sequential:\r\n        -
+    Option 1: Environment variable ```JOB_INDEX``` is not set or added\r\n        -
+    Option 2: Set the environment variable ```JOB_INDEX=NONE```\r\n        - Option
+    3: Set the environment variable ```JOB_INDEX=all```\r\n            Outcome: It
+    will load xforce-mss-replication-all.xml which contains all tasks in it.\r\n    -
+    Parallel:\r\n        If the tasks are grouped and expected to be run in parallel.\r\n
+    \           ``` Set the environment variable JOB_INDEX=<start-index>-<end-index>,
+    where start-index and end-index is variable integer value based on the context
+    file is generated```\r\n            eg: Tasks are grouped into 5 batches and they
+    are kept in those files named xforce-mss-replication-1.xml, xforce-mss-replication-2.xml,
+    etc..\r\n                Hence, in order to run these 5 batches, set the environment
+    variable ```JOB_INDEX=1-5```\r\n                \r\n##### How to run jobs with
+    older version of the component FullReplicationWithPagingTask\r\n- Set the environment
+    variable ```JOB_INDEX=all_old```\r\n- Outcome: It will load xforce-mss-replication-all_old.xml
+    which contains all tasks with FullReplicationWithPagingTask is on older version.\r\n\r\n#####
+    How to import these v1 configs into CronJob in OpenShift\r\n- Pre-requisites:\r\n
+    \   - oc cli must be installed and available in workstation. (Refer - https://github.ibm.com/managed-security/customer-score-generator/blob/container/ocp/openshift-client-setup-guide.md
+    )\r\n    - This repository is cloned and avaliable in workstation.\r\n    \r\n-
+    Generate config map:\r\n    - Run the command, ```oc create configmap dbrep-xforce-config
+    --from-file=<replace this base directory path where this project is cloned>\\DatabaseReplication\\src\\main\\resources\\xforce_config_parallel
+    -n xpp -o yaml --dry-run=client > dbrep-xforce-config.yml```\r\n    - After successful
+    execution, new file ```dbrep-xforce-config.yml``` is created in your current directory
+    from where the above command is executed.\r\n    - This file has to be kept in
+    gitops-flux repository and make sure this is also been considered in your release
+    pull request.\r\n    \r\n- Add new task from the existing group:\r\n    - These
+    5 batch files created as based on existing performance of each tasks behavior
+    report.\r\n    - If any tasks are added to these groups, make sure they are aligned
+    with their dependent task in the same file.\r\n    - If the new task is identified
+    as independent, then this can be added to any file. Even this can be introduced
+    into new file with incremental index (say xforce-mss-replication-v1-5.xml)\r\n
+    \   - After any update of any of the xmls in this location, recreate ```dbrep-xforce-config.xml```
+    per above instruction and push it to gitops-flux repository.          "
+  xforce-mss-replication-1.xml: "<!--\r\n  ~ IBM Confidential - OCO Source Materials\r\n
+    \ ~ Copyright (c) IBM Corp. 1992, 2007\r\n  ~ Copyright (c) Internet Security
+    Systems, Inc. 1992-2006\r\n  ~ The source code for this program is not published
+    or otherwise divested of its trade secrets,\r\n  ~ irrespective of what has been
+    deposited with the U.S. Copyright Office.\r\n  -->\r\n<beans xmlns=\"http://www.springframework.org/schema/beans\"\r\n
+    \      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n       xsi:schemaLocation=\"http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-2.0.xsd\">\r\n  <import
+    resource=\"classpath:xforce-mss-replication-base.xml\"/>\r\n  <bean id=\"replicationDriver\"
+    class=\"net.iss.mss.dbreplicate.ReplicationDriver\" scope=\"singleton\">\r\n    <constructor-arg
+    type=\"java.util.List\">\r\n      <list>\r\n        <!-- Parents -->\r\n        <ref
+    bean=\"applicationsTask\"/>\r\n        <ref bean=\"securityChecksTask\"/>\r\n
+    \       <ref bean=\"applicationClassTask\"/>\r\n        <ref bean=\"categoryGroupTask\"/>\r\n
+    \       <ref bean=\"categoriesTask\"/>\r\n        <ref bean=\"osGroupTask\"/>\r\n
+    \       <ref bean=\"productCheckTask\"/>\r\n        <ref bean=\"productsTask\"/>\r\n
+    \       <ref bean=\"productVersionsTask\"/>\r\n        <ref bean=\"standardGroupsTask\"/>\r\n
+    \       <ref bean=\"securityAdvisoryTask\"/>\r\n\r\n        <!-- Leaf tasks -->\r\n
+    \       <ref bean=\"cvssTypeTask\"/>\r\n        <ref bean=\"cvssMetricTask\"/>\r\n
+    \     </list>\r\n    </constructor-arg>\r\n    <property name=\"keyUsageQuery\"
+    ref=\"keyUsageQuery\"/>\r\n    <property name=\"replicationInfoInsertStmt\" ref=\"mssReplicationInfoInsertStmt\"/>\r\n
+    \ </bean>\r\n</beans>\r\n"
+  xforce-mss-replication-2.xml: "<!--\r\n  ~ IBM Confidential - OCO Source Materials\r\n
+    \ ~ Copyright (c) IBM Corp. 1992, 2007\r\n  ~ Copyright (c) Internet Security
+    Systems, Inc. 1992-2006\r\n  ~ The source code for this program is not published
+    or otherwise divested of its trade secrets,\r\n  ~ irrespective of what has been
+    deposited with the U.S. Copyright Office.\r\n  -->\r\n<beans xmlns=\"http://www.springframework.org/schema/beans\"\r\n
+    \      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n       xsi:schemaLocation=\"http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-2.0.xsd\">\r\n  <import
+    resource=\"classpath:xforce-mss-replication-base.xml\"/>\r\n  <bean id=\"replicationDriver\"
+    class=\"net.iss.mss.dbreplicate.ReplicationDriver\" scope=\"singleton\">\r\n    <constructor-arg
+    type=\"java.util.List\">\r\n      <list>\r\n\r\n        <!-- Children or Leafs
+    -->\r\n        <ref bean=\"externalReferencesTask\"/>\r\n        <ref bean=\"issPrivateTask\"/>\r\n
+    \       <ref bean=\"securityCheckApplicationsTask\"/>\r\n        <ref bean=\"applicationClassApplicationsTask\"/>\r\n
+    \       <ref bean=\"applicationTypesTask\"/>\r\n        <ref bean=\"checkCategoriesTask\"/>\r\n
+    \       <ref bean=\"productCheckCategoriesTask\"/>\r\n        <ref bean=\"productChecksProductVersionsTask\"/>\r\n
+    \       <ref bean=\"remediesTask\"/>\r\n        <ref bean=\"securityCheckAdvisoriesTask\"/>\r\n
+    \       <ref bean=\"securityCheckOsGroupTask\"/>\r\n      </list>\r\n    </constructor-arg>\r\n
+    \   <property name=\"keyUsageQuery\" ref=\"keyUsageQuery\"/>\r\n    <property
+    name=\"replicationInfoInsertStmt\" ref=\"mssReplicationInfoInsertStmt\"/>\r\n
+    \ </bean>\r\n</beans>\r\n"
+  xforce-mss-replication-3.xml: "<!--\r\n  ~ IBM Confidential - OCO Source Materials\r\n
+    \ ~ Copyright (c) IBM Corp. 1992, 2007\r\n  ~ Copyright (c) Internet Security
+    Systems, Inc. 1992-2006\r\n  ~ The source code for this program is not published
+    or otherwise divested of its trade secrets,\r\n  ~ irrespective of what has been
+    deposited with the U.S. Copyright Office.\r\n  -->\r\n<beans xmlns=\"http://www.springframework.org/schema/beans\"\r\n
+    \      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n       xsi:schemaLocation=\"http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-2.0.xsd\">\r\n  <import
+    resource=\"classpath:xforce-mss-replication-base.xml\"/>\r\n  <bean id=\"replicationDriver\"
+    class=\"net.iss.mss.dbreplicate.ReplicationDriver\" scope=\"singleton\">\r\n    <constructor-arg
+    type=\"java.util.List\">\r\n      <list>\r\n        <!-- Parents -->\r\n        <ref
+    bean=\"securityCheckProductCheckTask\"/>\r\n      </list>\r\n    </constructor-arg>\r\n
+    \   <property name=\"keyUsageQuery\" ref=\"keyUsageQuery\"/>\r\n    <property
+    name=\"replicationInfoInsertStmt\" ref=\"mssReplicationInfoInsertStmt\"/>\r\n
+    \ </bean>\r\n</beans>\r\n"
+  xforce-mss-replication-4.xml: "<!--\r\n  ~ IBM Confidential - OCO Source Materials\r\n
+    \ ~ Copyright (c) IBM Corp. 1992, 2007\r\n  ~ Copyright (c) Internet Security
+    Systems, Inc. 1992-2006\r\n  ~ The source code for this program is not published
+    or otherwise divested of its trade secrets,\r\n  ~ irrespective of what has been
+    deposited with the U.S. Copyright Office.\r\n  -->\r\n<beans xmlns=\"http://www.springframework.org/schema/beans\"\r\n
+    \      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n       xsi:schemaLocation=\"http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-2.0.xsd\">\r\n  <import
+    resource=\"classpath:xforce-mss-replication-base.xml\"/>\r\n  <bean id=\"replicationDriver\"
+    class=\"net.iss.mss.dbreplicate.ReplicationDriver\" scope=\"singleton\">\r\n    <constructor-arg
+    type=\"java.util.List\">\r\n      <list>\r\n        <ref bean=\"mssVendorProductCheckPlatformsTask\"/>\r\n
+    \     </list>\r\n    </constructor-arg>\r\n    <property name=\"keyUsageQuery\"
+    ref=\"keyUsageQuery\"/>\r\n    <property name=\"replicationInfoInsertStmt\" ref=\"mssReplicationInfoInsertStmt\"/>\r\n
+    \ </bean>\r\n</beans>\r\n"
+  xforce-mss-replication-5.xml: "<!--\r\n  ~ IBM Confidential - OCO Source Materials\r\n
+    \ ~ Copyright (c) IBM Corp. 1992, 2007\r\n  ~ Copyright (c) Internet Security
+    Systems, Inc. 1992-2006\r\n  ~ The source code for this program is not published
+    or otherwise divested of its trade secrets,\r\n  ~ irrespective of what has been
+    deposited with the U.S. Copyright Office.\r\n  -->\r\n<beans xmlns=\"http://www.springframework.org/schema/beans\"\r\n
+    \      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n       xsi:schemaLocation=\"http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-2.0.xsd\">\r\n  <import
+    resource=\"classpath:xforce-mss-replication-base.xml\"/>\r\n  <bean id=\"replicationDriver\"
+    class=\"net.iss.mss.dbreplicate.ReplicationDriver\" scope=\"singleton\">\r\n    <constructor-arg
+    type=\"java.util.List\">\r\n      <list>\r\n        <ref bean=\"mssVendorProductCheckTask\"/>\r\n
+    \       <ref bean=\"mssVendorProductCheckCVETask\"/>\r\n        <ref bean=\"mssVendorProductCheckCVE2Task\"/>\r\n
+    \       <ref bean=\"mssVendorProductCheckBugTraqTask\"/>\r\n        <ref bean=\"mssVendorProductCheckReferencesTask\"/>\r\n
+    \       <ref bean=\"mssVendorProductCheckVulnTypeTask\"/>\r\n        <ref bean=\"mssVendorProductCheckRemediesTask\"/>\r\n
+    \       <ref bean=\"mssVendorProductCheckSensorsTask\"/>\r\n        <ref bean=\"cvssMetricValueTask\"/>\r\n
+    \       <ref bean=\"cvssEvaluationTask\"/>\r\n<!--        <ref bean=\"productCheckVulnerabilityTask\"/>--><!--
+    This is on VMS schema. It has been moved to xforce-mss-replication-6.xml-->\r\n
+    \     </list>\r\n    </constructor-arg>\r\n    <property name=\"keyUsageQuery\"
+    ref=\"keyUsageQuery\"/>\r\n    <property name=\"replicationInfoInsertStmt\" ref=\"mssReplicationInfoInsertStmt\"/>\r\n
+    \ </bean>\r\n</beans>\r\n"
+  xforce-mss-replication-6.xml: "<!--\r\n  ~ IBM Confidential - OCO Source Materials\r\n
+    \ ~ Copyright (c) IBM Corp. 1992, 2007\r\n  ~ Copyright (c) Internet Security
+    Systems, Inc. 1992-2006\r\n  ~ The source code for this program is not published
+    or otherwise divested of its trade secrets,\r\n  ~ irrespective of what has been
+    deposited with the U.S. Copyright Office.\r\n  -->\r\n<beans xmlns=\"http://www.springframework.org/schema/beans\"\r\n
+    \      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n       xsi:schemaLocation=\"http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-2.0.xsd\">\r\n  <import
+    resource=\"classpath:xforce-mss-replication-base.xml\"/>\r\n  <bean id=\"replicationDriver\"
+    class=\"net.iss.mss.dbreplicate.ReplicationDriver\" scope=\"singleton\">\r\n    <constructor-arg
+    type=\"java.util.List\">\r\n      <list>\r\n        <ref bean=\"productCheckVulnerabilityTask\"/>\r\n
+    \     </list>\r\n    </constructor-arg>\r\n    <property name=\"keyUsageQuery\"
+    ref=\"keyUsageQuery\"/>\r\n    <property name=\"replicationInfoInsertStmt\" ref=\"mssReplicationInfoInsertStmt\"/>\r\n
+    \ </bean>\r\n</beans>\r\n"
+kind: ConfigMap
+metadata:
+  name: dbrep-xforce-config
+  namespace: xpp

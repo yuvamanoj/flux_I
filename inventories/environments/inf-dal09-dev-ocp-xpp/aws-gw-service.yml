@@ -1,0 +1,52 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: aws-gw-service
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-dev.*
+spec:
+  releaseName: aws-gw-service
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: aws-gw-service
+    version: 0.0.7-dev
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/aws-gw-service
+      tag: 0.0.7-dev.362e74bf
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    serviceAccount:
+      create: true
+    secretsDir: "/vault/secrets"
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/preserve-secret-case: "true"
+      vault.hashicorp.com/role: "aws-gw-service"
+      vault.hashicorp.com/agent-inject-secret-AWS_ACCESS_KEY_ID: "secret/data/modules/aws-gw-service/aws"
+      vault.hashicorp.com/agent-inject-template-AWS_ACCESS_KEY_ID: |-
+        {{- with secret "secret/data/modules/aws-gw-service/aws" -}}{{- .Data.data.AWS_ACCESS_KEY_ID -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-AWS_SECRET_ACCESS_KEY: "secret/data/modules/aws-gw-service/aws"
+      vault.hashicorp.com/agent-inject-template-AWS_SECRET_ACCESS_KEY: |-
+        {{- with secret "secret/data/modules/aws-gw-service/aws" -}}{{- .Data.data.AWS_SECRET_ACCESS_KEY -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-DB_HOSTNAME: "secret/data/modules/aws-gw-service/database"
+      vault.hashicorp.com/agent-inject-template-DB_HOSTNAME: |-
+        {{- with secret "secret/data/modules/aws-gw-service/database" -}}{{- .Data.data.DB_HOSTNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-DB_PASSWORD: "secret/data/modules/aws-gw-service/database"
+      vault.hashicorp.com/agent-inject-template-DB_PASSWORD: |-
+        {{- with secret "secret/data/modules/aws-gw-service/database" -}}{{- .Data.data.DB_PASSWORD -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-DB_USERNAME: "secret/data/modules/aws-gw-service/database"
+      vault.hashicorp.com/agent-inject-template-DB_USERNAME: |-
+        {{- with secret "secret/data/modules/aws-gw-service/database" -}}{{- .Data.data.DB_USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-JWT_SECRET: "secret/data/modules/aws-gw-service/service"
+      vault.hashicorp.com/agent-inject-template-JWT_SECRET: |-
+        {{- with secret "secret/data/modules/aws-gw-service/database" -}}{{- .Data.data.JWT_SECRET -}}{{- end }}
+    # TEMPLATE: Insert other required configuration values here

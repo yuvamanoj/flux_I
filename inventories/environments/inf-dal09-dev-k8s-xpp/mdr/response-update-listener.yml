@@ -1,0 +1,45 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: response-update-listener
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master*
+spec:
+  releaseName: response-update-listener
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: response-update-listener
+    version: 1.0.0-master
+  values:
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    replicaCount: 1
+    revisionHistoryLimit: 1
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/response-update-listener
+      tag: 1.1.0-master.a22d76bb
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.k8s.xpp
+    secretName: response-update-listener
+    log:
+      level: DEBUG
+      format: plain
+    config:
+      mdr:
+        services:
+          baseUrl: https://dal09-dev-services.sec.ibm.com
+          timeoutSeconds: 15
+        resilient:
+          baseUrl: atl-dev-resdemo-01a.sec.ibm.com
+          org-id: 204
+      spring:
+        kafka:
+          bootstrap-servers: dal09-dev-kfk-01a.sec.ibm.com:9093,dal09-dev-kfk-01b.sec.ibm.com:9093,dal09-dev-kfk-01c.sec.ibm.com:9093

@@ -1,0 +1,24 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: customer-contact-authenticator
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: customer-contact-authenticator
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: customer-contact-authenticator
+    version: 1.1.2-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/customer-contact-authenticator
+      tag: 1.1.2-openshift.06850e7e
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    env:
+      HOSTNAME_PREFIX: customer-contact-authenticator-dev-ocp

@@ -1,0 +1,49 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: horizon-profile
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  targetNamespace: horizon
+  releaseName: horizon-profile
+  chart:
+    git: git@github.ibm.com:managed-security/horizon-profile
+    ref: v3.5.4
+    path: chart
+  values:
+    service:
+      port: 3000
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/horizon-profile
+      tag: 3.5.4
+    log:
+      level: "debug"
+    config:
+      PORT: 3000
+      SERVICES_URL: "https://services.sec.ibm.com"
+      MRSAAS_HOSTNAME: "https://connect.ibm.com"
+      MRSAAS_PATH: "/IWMaaS/preview/captureXML"
+    serviceAccount:
+      create: true
+    secretsDir: "/vault/secrets"
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/role: "horizon-profile"
+      vault.hashicorp.com/agent-inject-secret-intra_access_key: "secret/data/modules/horizon-profile/auth"
+      vault.hashicorp.com/agent-inject-template-intra_access_key: |-
+        {{- with secret "secret/data/modules/horizon-profile/auth" -}}{{- .Data.data.INTRA_ACCESS_KEY -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-mss_token: "secret/data/modules/horizon-profile/client/services/auth"
+      vault.hashicorp.com/agent-inject-template-mss_token: |-
+        {{- with secret "secret/data/modules/horizon-profile/client/services/auth" -}}{{- .Data.data.TOKEN -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-cloudant_url: "secret/data/modules/horizon-profile/cloudant/global"
+      vault.hashicorp.com/agent-inject-template-cloudant_url: |-
+        {{- with secret "secret/data/modules/horizon-profile/cloudant/global" -}}{{- .Data.data.CLOUDANT_URL -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-mrsaas_username: "secret/data/modules/horizon-profile/mrsaas"
+      vault.hashicorp.com/agent-inject-template-mrsaas_username: |-
+        {{- with secret "secret/data/modules/horizon-profile/mrsaas" -}}{{ .Data.data.USERNAME }}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-mrsaas_password: "secret/data/modules/horizon-profile/mrsaas"
+      vault.hashicorp.com/agent-inject-template-mrsaas_password: |-
+        {{- with secret "secret/data/modules/horizon-profile/mrsaas" -}}{{ .Data.data.PASSWORD }}{{- end }}

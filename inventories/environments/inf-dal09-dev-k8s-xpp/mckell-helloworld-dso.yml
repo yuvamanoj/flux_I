@@ -1,0 +1,27 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mckell-helloworld-dso
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: mckell-helloworld-dso
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: mckell-helloworld-dso
+    version: 0.0.1-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/mckell-helloworld-dso
+      tag: 0.0.1-master.c9bda366
+    imagePullSecrets:
+    - name: docker-registry-pull
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.k8s.xpp
+    # TEMPLATE: Insert other required configuration values here

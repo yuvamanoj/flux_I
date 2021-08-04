@@ -1,0 +1,46 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: virus-scan-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: virus-scan-ms
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/virus-scan-ms
+    ref: master
+    path: chart
+  values:
+    replicaCount: 1
+    revisionHistoryLimit: 1
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/virus-scan-ms
+      tag: 1.0.1-master.8ddbf33f
+    graphite:
+      enabled: true
+      host: ruh01-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    secretName: virus-scan-ms
+    ingress:
+      enabled: true
+      hosts:
+      - host: virus-scan-ms.ruh01-prd.k8s.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - virus-scan-ms.ruh01-prd.k8s.sec.ibm.com
+        secretName: virus-scan-ms
+    config:
+      app:
+        clamav:
+          host: localhost
+          port: 3310
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

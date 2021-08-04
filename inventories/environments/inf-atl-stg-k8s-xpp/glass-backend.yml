@@ -1,0 +1,32 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: glass-backend
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:1.0.+([0-9])
+spec:
+  releaseName: glass-backend-flux
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    version: 1.0.26
+    name: glass-backend
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/glass-backend
+      tag: 1.0.26
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      SERVICES_BASE_URL: https://stg-services.sec.ibm.com
+      NODE_ENV: stage
+      HOURS_BACK: 24
+      TOKEN_TYPE: SessionToken
+      GLASS_CASE_MS_BASE_URL: http://glass-cases-ms.xpp:8080
+      WTDS_SERVICE_URL: http://atl-stg-lmsrp-01a.sec.ibm.com:8000
+    ingress:
+      host: atl-stg.k8s.sec.ibm.com

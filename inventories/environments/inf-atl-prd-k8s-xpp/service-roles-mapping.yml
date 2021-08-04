@@ -1,0 +1,52 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: service-roles-mapping
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: service-roles-mapping
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: service-roles-mapping
+    version: 1.0.2-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/service-roles-mapping
+      tag: 1.0.2-master.baf67c35
+    graphite:
+      enabled: true
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    secretName: service-roles-mapping
+    ingress:
+      enabled: true
+      hosts:
+        - host: service-roles-mapping.atl-prd.k8s.sec.ibm.com
+          paths:
+            - /
+      tls:
+        - hosts:
+            - service-roles-mapping.atl-prd.k8s.sec.ibm.com
+          secretName: service-roles-mapping
+    config:
+      server:
+        port: 3333
+      app:
+        elasticSearch:
+          baseUrl: atl-prd-eas-01a.sec.ibm.com:9200,atl-prd-eas-01b.sec.ibm.com:9200,atl-prd-eas-01c.sec.ibm.com:9200
+          indexName: opsservicerolesmapping
+          type: servicerolesmapping
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

@@ -1,0 +1,20 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: policy-change-request-allocation
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: policy-change-request-allocation
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: policy-change-request-allocation
+    version: 0.0.1-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/policy-change-request-allocation
+      tag: 0.0.1-master.43376165

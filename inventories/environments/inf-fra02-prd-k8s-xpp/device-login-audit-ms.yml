@@ -1,0 +1,62 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: device-login-audit-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: device-login-audit-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: device-login-audit-ms
+    version: 2.0.10-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/device-login-audit-ms
+      tag: 2.0.10-master.d7fee3ba
+    graphite:
+      enabled: true
+      host: fra02-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'device-login-audit-ms'
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.username: "secret/modules/device-login-audit-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.username: |-
+        {{- with secret "secret/modules/device-login-audit-ms/elastic-search" -}}{{- .Data.data.ELASTICSEARCH_USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.password: "secret/modules/device-login-audit-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.password: |-
+        {{- with secret "secret/modules/device-login-audit-ms/elastic-search" -}}{{- .Data.data.ELASTICSEARCH_PASSWORD -}}{{- end }}
+    ingress:
+      enabled: true
+      hosts:
+        - host: device-login-audit-ms.fra02-prd.k8s.sec.ibm.com
+          paths:
+            - /
+      tls:
+        - hosts:
+            - device-login-audit-ms.fra02-prd.k8s.sec.ibm.com
+    config:
+      server:
+        port: 3333
+      app:
+        elasticSearch:
+          baseUrl: fra02-prd-eas-01a.sec.ibm.com:9200,fra02-prd-eas-01b.sec.ibm.com:9200,fra02-prd-eas-01c.sec.ibm.com:9200
+          indexName: opsdevdetailsloginaudit
+          type: devdetailsloginaudit
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

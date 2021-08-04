@@ -1,0 +1,57 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: sentinel-vendor-config
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: sentinel-vendor-config
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/sentinel-vendor-config
+    ref: master
+    path: chart
+  values:
+    replicaCount: 1
+    revisionHistoryLimit: 1
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/sentinel-vendor-config
+      tag: 1.0.6-master.ebde7b3f
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.k8s.master
+    route:
+      enabled: false
+    ingress:
+      enabled: true
+      hosts:
+      - host: sentinel-vendor-config.atl-stg.k8s.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - sentinel-vendor-config.atl-stg.k8s.sec.ibm.com
+    secretName: sentinel-vendor-config
+    imagePullSecrets:
+    - name: docker-registry-pull
+    config:
+      app:
+        services:
+          baseUrl: https://stg-services.sec.ibm.com
+          timeoutSeconds: 30
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      LOG_FORMAT: json
+      LOG_LEVEL: DEBUG
+      NEW_RELIC_LOG_FILE_NAME: STDOUT
+      NEW_RELIC_LOG_LEVEL: WARN
+      NEW_RELIC_SYNC_STARTUP: true
+      NEW_RELIC_AGENT_ENABLED: true
+      NEW_RELIC_SEND_DATA_ON_EXIT: true
+      NEW_RELIC_SEND_DATA_ON_EXIT_THRESHOLD: 60
+      NEW_RELIC_APP_NAME: sentinel-vendor-config-stg
+      NEW_RELIC_LABELS: Application:sentinel-vendor-config;Org:Lhs;Region:ATL;Stack:Stg;Namespace:Master

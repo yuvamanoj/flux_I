@@ -1,0 +1,30 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: grafana-gateway
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-xps73260api.*
+spec:
+  releaseName: grafana-gateway
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: grafana-gateway
+    version: 0.0.2-xps73260api
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/grafana-gateway
+      tag: 0.0.2-xps73260api.302ea2f6
+    imagePullSecrets:
+    - name: example-docker-registry-pull
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.example
+
+
+# TEMPLATE: Insert other required configuration values here
+

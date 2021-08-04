@@ -1,0 +1,51 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: vmsui-api
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: semver:1.0.6
+spec:
+  releaseName: vmsui-api
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/vmsui-api
+    path: chart
+    ref: 1.0.6
+  values:
+    di:
+      enabled: true
+      namespace: xpp
+      image: xfr-worker-prisma:1.0.2-master.d4a1aefa
+      schedule: "* */6 * * *"
+      ENV: production
+      PRISMA_PROXY: http://http-proxy.routers.svc.cluster.local:8080
+      SERVICES_URL: https://stg-services.sec.ibm.com/micro/
+      WRITE_API_URL: https://stg-services.sec.ibm.com/micro/vmsui-write-api
+    config:
+      USE_SQLITE: 'false'
+      SSO_USE_IBMID_PROD: 'false'
+      SSO_USE_IBMID: 'true'
+      SSO_DISCOVERY_URL: https://prepiam.ice.ibmcloud.com/v1.0/endpoint/default/.well-known/openid-configuration
+      SSO_BASE_URL: https://prepiam.ice.ibmcloud.com
+      SSO_CALLBACK_URL: https://vmsui-xpp.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com/auth/sso/callback
+      SERVICES_URL: https://stg-services.sec.ibm.com:443/micro/
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/vmsui-api
+      tag: 1.0.6
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: .5
+      requests:
+        cpu: .25
+    graphite:
+      enabled: true
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.ocp.xpp
+      port: 2003
+
+# TEMPLATE: Insert other required configuration values here

@@ -1,0 +1,56 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: snow-problem-task-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-stg.*
+spec:
+  releaseName: snow-problem-task-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: snow-problem-task-ms
+    version: 1.0.2-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/snow-problem-task-ms
+      tag: 1.0.2-master.ebc9eb33
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.k8s.xpp
+    secretName: snow-problem-task-ms
+    ingress:
+      enabled: true
+      hosts:
+        - host: snow-problem-task-ms.atl-stg.k8s.sec.ibm.com
+          paths:
+            - /
+      tls:
+        - hosts:
+            - snow-problem-task-ms.atl-stg.k8s.sec.ibm.com
+          secretName: snow-problem-task-ms
+    config:
+      server:
+        port: 3333
+      app:
+        elasticSearch:
+          baseUrl: atl-stg-eas-01a.sec.ibm.com:9200,atl-stg-eas-01b.sec.ibm.com:9200,atl-stg-eas-01c.sec.ibm.com:9200
+          indexName: servicenow
+          type: problem_task
+        serviceNow:
+          scheme: https
+          baseUrl: secsupportstg.service-now.com
+          endpoint: "/api/x_ibmip_int_prb/ws/problem_task"
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

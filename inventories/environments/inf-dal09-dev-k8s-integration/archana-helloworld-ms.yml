@@ -1,0 +1,43 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: archana-helloworld-ms
+  namespace: integration
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: archana-helloworld-ms
+  forceUpgrade: false
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: archana-helloworld-ms
+    version: 1.0.6-integration
+  values:
+    service:
+      targetPort: 3000
+    readinessProbe:
+      initialDelaySeconds: 120
+    livenessProbe:
+      initialDelaySeconds: 120
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/archana-helloworld-ms
+      tag: 1.0.6-integration.5abec667
+    ingress:
+      enabled: true
+      hosts:
+      - host: archana-helloworld-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - archana-helloworld-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+    config:
+      server:
+        port: 3000
+      env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG
+
+

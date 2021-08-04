@@ -1,0 +1,52 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: timezone-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: timezone-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: timezone-ms
+    version: 1.0.1-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/timezone-ms
+      tag: 1.0.1-master.e70b31d8
+    graphite:
+      enabled: true
+      host: fra02-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    secretName: timezone-ms
+    ingress:
+      enabled: true
+      hosts:
+        - host: timezone-ms.fra02-prd.k8s.sec.ibm.com
+          paths:
+            - /
+      tls:
+        - hosts:
+            - timezone-ms.fra02-prd.k8s.sec.ibm.com
+          secretName: timezone-ms
+    config:
+      server:
+        port: 3333
+      app:
+        elasticSearch:
+          baseUrl: fra02-prd-eas-01a.sec.ibm.com:9200,fra02-prd-eas-01b.sec.ibm.com:9200,fra02-prd-eas-01c.sec.ibm.com:9200
+          indexName: opstimezones
+          type: timezones
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

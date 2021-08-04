@@ -1,0 +1,24 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: aura-migration-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-dev.*
+spec:
+  releaseName: aura-migration-ms
+  forceUpgrade: false
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: aura-migration-ms
+    version: 0.0.10-dev
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/aura-migration-ms
+      tag: 0.0.10-dev.a566c183
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    env:
+      SPRING_PROFILES_ACTIVE: dal09-dev

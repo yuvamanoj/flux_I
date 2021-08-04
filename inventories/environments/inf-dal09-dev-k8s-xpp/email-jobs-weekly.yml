@@ -1,0 +1,33 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: email-jobs-weekly
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-container.*
+spec:
+  releaseName: email-jobs-weekly
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: email-jobs
+    version: 1.0.21-container
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/email_jobs
+      tag: 1.0.21-container.2ab9e9e0
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    schedule: "0 1 * * *"
+    args:
+      arg1: -Denvironment=weekly
+      arg2: net.iss.mss.reporting.email.WeeklyDeploymentProjectReportEmailHandler
+    env:
+      name: MSS_LOCAL_PROPS
+      value: /appData/application.global.properties
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp

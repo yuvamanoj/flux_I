@@ -1,0 +1,47 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: horizon-webapp-bff
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  targetNamespace: horizon
+  releaseName: horizon-webapp-bff
+  chart:
+    git: git@github.ibm.com:managed-security/horizon-webapp-bff
+    ref: v4.1.1
+    path: chart
+  values:
+    service:
+      port: 3000
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/horizon-webapp-bff
+      tag: 4.1.1
+    log:
+      level: "debug"
+    config:
+      PORT: 3000
+      SERVICES_URL: "https://services.sec.ibm.com"
+      IBM_ID_ISSUER: "https://login.ibm.com/oidc/endpoint/default"
+      HORIZON_PROFILE: "http://horizon-profile:3000/v1/api"
+      HORIZON_TICKETS: "http://horizon-tickets:3000/v1/api"
+      HORIZON_DEVICES: "http://horizon-devices:3000/v1/api"
+      HORIZON_REPORTS: "http://horizon-reports:3000/v1/api"
+      SECURITY_STREAM_REDEEM: "http://security-stream-redeem:3000/v1/api"
+    serviceAccount:
+      create: true
+    secretsDir: "/vault/secrets"
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/role: "horizon-webapp-bff"
+      vault.hashicorp.com/agent-inject-secret-intra_access_key: "secret/data/modules/horizon-webapp-bff/auth"
+      vault.hashicorp.com/agent-inject-template-intra_access_key: |-
+        {{- with secret "secret/data/modules/horizon-webapp-bff/auth" -}}{{- .Data.data.INTRA_ACCESS_KEY -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-ibm_id_client_id: "secret/data/modules/horizon-webapp-bff/ibmid"
+      vault.hashicorp.com/agent-inject-template-ibm_id_client_id: |-
+        {{- with secret "secret/data/modules/horizon-webapp-bff/ibmid" -}}{{- .Data.data.CLIENT_ID -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-ibm_id_client_secret: "secret/data/modules/horizon-webapp-bff/ibmid"
+      vault.hashicorp.com/agent-inject-template-ibm_id_client_secret: |-
+        {{- with secret "secret/data/modules/horizon-webapp-bff/ibmid" -}}{{- .Data.data.CLIENT_SECRET -}}{{- end }}

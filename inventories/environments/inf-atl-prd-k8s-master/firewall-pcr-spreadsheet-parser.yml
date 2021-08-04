@@ -1,0 +1,41 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: firewall-pcr-spreadsheet-parser
+  namespace: master
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: firewall-pcr-spreadsheet-parser
+  forceUpgrade: false
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: firewall-pcr-spreadsheet-parser
+    version: 0.0.31-master
+  values:
+    service:
+      targetPort: 3000
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/firewall-pcr-spreadsheet-parser
+      tag: 0.0.31-master.a1a45ffc
+    ingress:
+      enabled: true
+      hosts:
+      - host: firewall-pcr-spreadsheet-parser.atl-prd.k8s.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - firewall-pcr-spreadsheet-parser.atl-prd.k8s.sec.ibm.com
+    config:
+      server:
+        port: 3000
+      env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

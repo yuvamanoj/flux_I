@@ -1,0 +1,43 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: customer-registration-backup
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: customer-registration-backup
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: customer-registration-backup
+    version: 1.0.13-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/customer-registration-backup
+      tag: 1.0.13-master.0700be1c
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    env:
+      REACT_APP_BASE_URL: https://cerberus-tab-bff-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com
+      callbackURL: https://customer-registration-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/api/login-callback
+      clientID: YTNlMmYxYTItNDAzZS00
+      clientSecret: YjBkOTE4NzYtNDkzYi00
+      discoveryURL: https://prepiam.ice.ibmcloud.com/v1.0/endpoint/default/.well-known/openid-configuration
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    readinessProbe:
+      initialDelaySeconds: 120
+    livenessProbe:
+      initialDelaySeconds: 120
+    resources:
+      requests:
+        cpu: 2
+        memory: 2Gi
+      limits:
+        cpu: 4
+        memory: 4Gi

@@ -1,0 +1,40 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: horizon-tickets
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  targetNamespace: horizon
+  releaseName: horizon-tickets
+  chart:
+    git: git@github.ibm.com:managed-security/horizon-tickets
+    ref: master
+    path: chart
+  values:
+    service:
+      port: 3000
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/horizon-tickets
+      tag: 2.5.2-master.bf5b497d
+    log:
+      level: "debug"
+    config:
+      PORT: 3000
+      SERVICES_URL: "https://stg-services.sec.ibm.com"
+      HORIZON_PROFILE: "http://horizon-profile:3000/v1/api"
+    serviceAccount:
+      create: true
+    secretsDir: "/vault/secrets"
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/role: "horizon-tickets"
+      vault.hashicorp.com/agent-inject-secret-intra_access_key: "secret/data/modules/horizon-tickets/auth"
+      vault.hashicorp.com/agent-inject-template-intra_access_key: |-
+        {{- with secret "secret/data/modules/horizon-tickets/auth" -}}{{- .Data.data.INTRA_ACCESS_KEY -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-mss_token: "secret/data/modules/horizon-tickets/client/services/auth"
+      vault.hashicorp.com/agent-inject-template-mss_token: |-
+        {{- with secret "secret/data/modules/horizon-tickets/client/services/auth" -}}{{- .Data.data.TOKEN -}}{{- end }}

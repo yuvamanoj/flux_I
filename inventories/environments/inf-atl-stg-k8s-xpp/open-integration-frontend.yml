@@ -1,0 +1,22 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: open-integration
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*integration*
+spec:
+  releaseName: open-integration-flux
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/open-integration
+    ref: integration
+    path: chart/open-integration
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/open-integration-frontend
+      tag: integration.fbd447ba
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull

@@ -1,0 +1,27 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mdr-cs-puma-drone-qr
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*master*
+spec:
+  releaseName: mdr-cs-puma-drone-qr
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/mdr-cs-puma-drone
+    ref: master
+    path: mdr-cs-puma-drone
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/mdr-cs-puma-drone
+      tag: master-a3f612d3
+    secretName: "mdr-cs-puma-drone"
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      SERVICES_BASE_URL: stg-services.sec.ibm.com
+      SYSLOG_SERVER_IP: 206.253.239.12
+      SYSLOG_SERVER_PORT: 514
+      FIELD_DELIM: "|"

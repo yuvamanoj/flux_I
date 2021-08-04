@@ -1,0 +1,52 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: snow-change-ms
+  namespace: integration
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: snow-change-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: snow-change-ms
+    version: 1.0.1-integration
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/snow-change-ms
+      tag: 1.0.1-integration.071031e7
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.k8s.integration
+    secretName: snow-change-ms
+    ingress:
+      enabled: true
+      hosts:
+      - host: snow-change-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - snow-change-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+        secretName: snow-change-ms
+    config:
+      server:
+        port: 3333
+      app:
+        elasticSearch:
+          baseUrl: dal09-dev-solr-01a.sec.ibm.com:9200,dal09-dev-solr-01b.sec.ibm.com:9200,dal09-dev-solr-01c.sec.ibm.com:9200
+          indexName: servicenow
+          type: change_request
+      env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

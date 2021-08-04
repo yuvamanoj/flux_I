@@ -1,0 +1,61 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: token-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: token-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: token-ms
+    version: 1.0.9-integration
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/token-ms
+      tag: 1.0.9-integration.a2691150
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.k8s.integration
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'token-ms'
+      vault.hashicorp.com/agent-inject-secret-token-ms.mss-datasource.username: "secret/modules/token-ms/database"
+      vault.hashicorp.com/agent-inject-template-token-ms.mss-datasource.username: |-
+        {{- with secret "secret/modules/token-ms/database" -}}{{- .Data.data.USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-token-ms.mss-datasource.password: "secret/modules/token-ms/database"
+      vault.hashicorp.com/agent-inject-template-token-ms.mss-datasource.password: |-
+        {{- with secret "secret/modules/token-ms/database" -}}{{- .Data.data.PASSWORD -}}{{- end }}
+    ingress:
+      enabled: true
+      hosts:
+      - host: token-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - token-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+        secretName: token-ms
+    config:
+      server:
+        port: 3333
+      token-ms:
+        mss-datasource:
+          jdbc-url: jdbc:mysql://dal09-dev-mssdb-01a.sec.ibm.com:3306/mss
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

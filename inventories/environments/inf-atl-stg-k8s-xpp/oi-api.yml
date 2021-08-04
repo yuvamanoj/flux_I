@@ -1,0 +1,41 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: oi-api
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-stg.*
+spec:
+  releaseName: oi-api
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: oi-api
+    version: 0.1.7-master
+  values:
+    service:
+      targetPort: 8080
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/oi-api
+      tag: 0.1.7-master.85133cb2
+    ingress:
+      enabled: true
+      hosts:
+      - host: oi-api.atl-stg.k8s.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - oi-api.atl-stg.k8s.sec.ibm.com
+    config:
+      server:
+        port: 8080
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

@@ -1,0 +1,27 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: api-docs
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: api-docs
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: api-docs
+    version: 1.0.41-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/api-docs
+      tag: 1.0.44-openshift.d61d0683
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    route:
+      host: api-docs.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com
+    env:
+      apiExplorerUrl: https://api-explorer-integration.dal09-dev.k8s-lab.sec.ibm.com:443
+

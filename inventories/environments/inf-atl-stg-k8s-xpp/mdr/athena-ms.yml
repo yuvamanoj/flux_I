@@ -1,0 +1,42 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: athena-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: athena-ms
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: athena-ms
+    version: 0.0.2-integration
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/athena-ms
+      tag: 0.0.2-integration.a0136ddb
+    secretName: athena-ms
+    readinessProbe:
+      exec:
+        command:
+        - sh
+        - -c
+        - curl --fail http://localhost:3333/health/ready
+      failureThreshold: 4
+      initialDelaySeconds: 60
+      periodSeconds: 15
+      successThreshold: 1
+      timeoutSeconds: 1
+    livenessProbe:
+      exec:
+        command:
+        - sh
+        - -c
+        - curl --fail http://localhost:3333/health/alive
+      failureThreshold: 4
+      initialDelaySeconds: 60
+      periodSeconds: 15
+      successThreshold: 1
+      timeoutSeconds: 1

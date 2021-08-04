@@ -1,0 +1,42 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: response-update-listener
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: response-update-listener
+  chart:
+    git: git@github.ibm.com:managed-security/response-update-listener
+    ref: v1.1.0
+    path: chart
+  values:
+    log:
+      level: DEBUG
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/response-update-listener
+      tag: 1.1.0
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.k8s.xpp
+    secretName: response-update-listener
+    config:
+      mdr:
+        services:
+          baseUrl: https://stg-services.sec.ibm.com
+          timeoutSeconds: 15
+        resilient:
+          baseUrl: atl-dev-resdemo-01a.sec.ibm.com
+          org-id: 204
+        console:
+          url: https://stg-console.sec.ibm.com
+      spring:
+        kafka:
+          bootstrap-servers: atl-stg-kfk-01a.sec.ibm.com:9093, atl-stg-kfk-01b.sec.ibm.com:9093,atl-stg-kfk-01c.sec.ibm.com:9093

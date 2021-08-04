@@ -1,0 +1,189 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: xdr-alert-capabilities
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: xdr-alert-capabilities
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: xdr-alert-capabilities
+    version: 0.0.1-master
+  values:
+    log:
+      level: DEBUG
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/xdr-alert-capabilities
+      tag: 1.0.2-master.80fe72b7
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    secretName: xdr-alert-capabilities
+    ingress:
+      enabled: false
+    route:
+      enabled: true
+      host: xdr-alert-capabilities-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com
+    config:
+      mdr:
+        services:
+          baseUrl: https://dal09-dev-services.sec.ibm.com
+          timeoutSeconds: 30
+      ruleengine:
+        rules:
+        - name: "Carbon Black - BAN_HASH"
+          visible:
+          - "#{device.machinePlatform == 'CB Cloud Single Tenant Response'}"
+          requirements:
+          - name: "Machine platform is 'CB Cloud Single Tenant Response'"
+            condition: "#{device.machinePlatform == 'CB Cloud Single Tenant Response'}"
+          - name: "Vendor is 'Carbon Black'"
+            condition: "#{device.vendor == 'Carbon Black'}"
+          - name: "Alert metadata contains md5 hash"
+            condition: "#{alertMetadata['md5'] > ''}"
+          payload:
+            approved: "#{#isApproved(#root, 'BAN_HASH')}"
+            assetCriticality: "#{asset.criticality}"
+            assetName: "#{#getAssetName(asset)}"
+            critical: "#{#isCritical(asset.criticality)}"
+            deviceId: "#{device.id}"
+            actionTarget: "#{alertMetadata['md5']}"
+            actionType: "BAN_HASH"
+            actionName: "Ban Hash"
+            alertId: "#{alert.id}"
+            alertCreateTimeInSeconds: "#{alert.createTimeInSeconds}"
+          metadata:
+          - key: "Host Name"
+            value: "#{alertMetadata['hostName'] ?: 'Unknown hostname'}"
+          - key: "Hash md5"
+            value: "#{alertMetadata['md5']}"
+          - key: "Asset Name"
+            value: "#{asset.assetNames.?[name > ''][0].name ?: 'Unknown asset name'}"
+        - name: "Carbon Black Cloud - BAN_HASH"
+          visible:
+          - "#{device.machinePlatform == 'CB Cloud Multi-tenant'}"
+          requirements:
+          - name: "Machine platform is 'CB Cloud Multi-tenant'"
+            condition: "#{device.machinePlatform == 'CB Cloud Multi-tenant'}"
+          - name: "Vendor is 'Carbon Black'"
+            condition: "#{device.vendor == 'Carbon Black'}"
+          - name: "Alert metadata contains actorSha256 hash"
+            condition: "#{alertMetadata['actorSha256'] > ''}"
+          payload:
+            approved: "#{#isApproved(#root, 'BAN_HASH')}"
+            assetCriticality: "#{asset.criticality}"
+            assetName: "#{#getAssetName(asset)}"
+            critical: "#{#isCritical(asset.criticality)}"
+            deviceId: "#{device.id}"
+            actionTarget: "#{alertMetadata['actorSha256']}"
+            actionType: "BAN_HASH"
+            actionName: "Ban Hash"
+            alertId: "#{alert.id}"
+            alertCreateTimeInSeconds: "#{alert.createTimeInSeconds}"
+          metadata:
+          - key: "Host Name"
+            value: "#{alertMetadata['hostName'] ?: 'Unknown hostname'}"
+          - key: "actorSha256 hash"
+            value: "#{alertMetadata['actorSha256']}"
+          - key: "Asset Name"
+            value: "#{asset.assetNames.?[name > ''][0].name ?: 'Unknown asset name'}"
+        - name: "Carbon Black Cloud - QUARANTINE_DEVICE"
+          visible:
+          - "#{device.machinePlatform == 'CB Cloud Multi-tenant'}"
+          requirements:
+          - name: "Machine platform is 'CB Cloud Multi-tenant'"
+            condition: "#{device.machinePlatform == 'CB Cloud Multi-tenant'}"
+          - name: "Vendor is 'Carbon Black'"
+            condition: "#{device.vendor == 'Carbon Black'}"
+          - name: "Alert metadata contains hostId"
+            condition: "#{alertMetadata['hostId'] > ''}"
+          payload:
+            approved: "#{#isApproved(#root, 'QUARANTINE_DEVICE')}"
+            assetCriticality: "#{asset.criticality}"
+            assetName: "#{#getAssetName(asset)}"
+            critical: "#{#isCritical(asset.criticality)}"
+            deviceId: "#{device.id}"
+            actionTarget: "#{alertMetadata['hostId']}"
+            actionType: "QUARANTINE_DEVICE"
+            actionName: "Quarantine device"
+            alertId: "#{alert.id}"
+            alertCreateTimeInSeconds: "#{alert.createTimeInSeconds}"
+          metadata:
+          - key: "Host Name"
+            value: "#{alertMetadata['hostName'] ?: 'Unknown hostname'}"
+          - key: "Carbon Black Device ID"
+            value: "#{alertMetadata['hostId']}"
+          - key: "Asset Name"
+            value: "#{asset.assetNames.?[name > ''][0].name ?: 'Unknown asset name'}"
+        - name: "CrowdStrike - CONTAIN_HOST"
+          visible:
+          - "#{device.machinePlatform == 'CrowdStrike Falcon'}"
+          requirements:
+          - name: "Machine platform is 'CrowdStrike Falcon'"
+            condition: "#{device.machinePlatform == 'CrowdStrike Falcon'}"
+          - name: "Vendor is 'CrowdStrike'"
+            condition: "#{device.vendor == 'CrowdStrike'}"
+          - name: "Alert metadata contains host_device_id"
+            condition: "#{alertMetadata['host_device_id'] > ''}"
+          - name: "Alert metadata contains hostName"
+            condition: "#{alertMetadata['hostName'] > ''}"
+          - name: "Alert metadata does not contain hostTAG - IBM-MSS-MDR-CRITICAL-ASSET-TAG"
+            condition: "#{!#hasValueInList(#trimBrackets(alertMetadata['hostTAG']),\
+              \ 'FalconGroupingTags/IBM-MSS-MDR-CRITICAL-ASSET-TAG')}"
+          payload:
+            approved: "#{#isApproved(#root, 'CONTAIN_HOST')}"
+            assetCriticality: "#{asset.criticality}"
+            assetName: "#{#getAssetName(asset)}"
+            critical: "#{#isCritical(asset.criticality)}"
+            deviceId: "#{device.id}"
+            actionTarget: "#{alertMetadata['host_device_id']}"
+            actionType: "CONTAIN_HOST"
+            actionName: "Contain host"
+            alertId: "#{alert.id}"
+            alertCreateTimeInSeconds: "#{alert.createTimeInSeconds}"
+          metadata:
+          - key: "Host Device Id"
+            value: "#{alertMetadata['host_device_id']}"
+          - key: "Host Name"
+            value: "#{alertMetadata['hostName']}"
+          - key: "Asset Name"
+            value: "#{asset.assetNames.?[name > ''][0].name ?: 'Unknown asset name'}"
+          - key: "Alert metadata does not contain hostTAG - IBM-MSS-MDR-CRITICAL-ASSET-TAG"
+            value: "#{!#hasValueInList(#trimBrackets(alertMetadata['hostTAG']), 'FalconGroupingTags/IBM-MSS-MDR-CRITICAL-ASSET-TAG')}"
+        - name: "Microsoft Defender ATP - ISOLATE_MACHINE"
+          visible:
+          - "#{device.machinePlatform == 'Microsoft Defender ATP'}"
+          requirements:
+          - name: "Machine platform is 'Microsoft Defender ATP'"
+            condition: "#{device.machinePlatform == 'Microsoft Defender ATP'}"
+          - name: "Vendor is 'Microsoft'"
+            condition: "#{device.vendor == 'Microsoft'}"
+          - name: "Alert metadata contains machineId"
+            condition: "#{alertMetadata['machineId'] > ''}"
+          - name: "Alert metadata contains hostName"
+            condition: "#{alertMetadata['hostName'] > ''}"
+          - name: "Alert metadata does not contain hostTAG - IBM-MSS-MDR-CRITICAL-ASSET-TAG"
+            condition: "#{!#hasValueInList(alertMetadata['hostTAG'], 'IBM-MSS-MDR-CRITICAL-ASSET-TAG')}"
+          payload:
+            approved: "#{#isApproved(#root, 'ISOLATE_MACHINE')}"
+            assetCriticality: "#{asset.criticality}"
+            assetName: "#{#getAssetName(asset)}"
+            critical: "#{#isCritical(asset.criticality)}"
+            deviceId: "#{device.id}"
+            actionTarget: "#{alertMetadata['machineId']}"
+            actionType: "ISOLATE_MACHINE"
+            actionName: "Isolate machine"
+            alertId: "#{alert.id}"
+            alertCreateTimeInSeconds: "#{alert.createTimeInSeconds}"
+          metadata:
+          - key: "Machine ID on Microsoft Defender ATP"
+            value: "#{alertMetadata['machineId']}"
+          - key: "Host Name on Microsoft Defender ATP"
+            value: "#{alertMetadata['hostName']}"
+          - key: "Asset Name"
+            value: "#{asset.assetNames.?[name > ''][0].name ?: 'Unknown asset name'}"

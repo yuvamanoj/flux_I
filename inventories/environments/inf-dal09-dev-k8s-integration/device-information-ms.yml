@@ -1,0 +1,67 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: device-information-ms
+  namespace: integration
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-xps73586.*
+spec:
+  releaseName: device-information-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: device-information-ms
+    version: 0.0.1-xps73586
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 120
+    livenessProbe:
+      initialDelaySeconds: 120
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/device-information-ms
+      tag: 0.0.1-xps73586.77ffc07c
+    imagePullSecrets:
+      - name: docker-registry-pull
+    ingress:
+      enabled: true
+      hosts:
+        - host: device-information-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+          paths:
+            - /
+    tls:
+      - hosts:
+          - device-information-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'device-information-ms'
+      vault.hashicorp.com/agent-inject-secret-app.services.admin-token: "secret/data/modules/device-information-ms/client/services/auth"
+      vault.hashicorp.com/agent-inject-template-app.services.admin-token: |-
+        {{- with secret "secret/data/modules/device-information-ms/client/services/auth" -}}{{- .Data.data.TOKEN -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.datasource.mss.user: "secret/data/modules/device-information-ms/database/mss"
+      vault.hashicorp.com/agent-inject-template-app.datasource.mss.user: |-
+        {{- with secret "secret/data/modules/device-information-ms/database/mss" -}}{{- .Data.data.Username -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.datasource.mss.password: "secret/data/modules/device-information-ms/database/mss"
+      vault.hashicorp.com/agent-inject-template-app.datasource.mss.password: |-
+        {{- with secret "secret/data/modules/device-information-ms/database/mss" -}}{{- .Data.data.Password -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.datasource.icinga.user: "secret/data/modules/device-information-ms/database/dev_cpe_icinga"
+      vault.hashicorp.com/agent-inject-template-app.datasource.icinga.user: |-
+        {{- with secret "secret/data/modules/device-information-ms/client/database/dev_cpe_icinga" -}}{{- .Data.data.Username -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.datasource.icinga.password: "secret/data/modules/device-information-ms/database/dev_cpe_icinga"
+      vault.hashicorp.com/agent-inject-template-app.datasource.icinga.password: |-
+        {{- with secret "secret/data/modules/device-information-ms/database/dev_cpe_icinga" -}}{{- .Data.data.Password -}}{{- end }}
+
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.k8s.integration
+    config:
+      server:
+        port: 3333
+    # TEMPLATE: Insert other required configuration values here

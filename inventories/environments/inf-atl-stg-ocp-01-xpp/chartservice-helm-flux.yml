@@ -1,0 +1,27 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: chartservice-stg
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-container.*
+spec:
+  releaseName: chartservice-stg
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: chart-service
+    version: 1.2.2-container
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/chart_service
+      tag: 1.2.2-container.ecbde16e
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.ocp.xpp
+    # TEMPLATE: Insert other required configuration values

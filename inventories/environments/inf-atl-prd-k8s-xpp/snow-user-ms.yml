@@ -1,0 +1,76 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: snow-user-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: snow-user-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: snow-user-ms
+    version: 1.0.2-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/snow-user-ms
+      tag: 1.0.2-master.5ded8fac
+    graphite:
+      enabled: true
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'snow-user-ms'
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.username: "secret/modules/snow-user-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.username: |-
+        {{- with secret "secret/modules/snow-user-ms/elastic-search" -}}{{- .Data.data.USERNAME -}}
+        {{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.password: "secret/modules/snow-user-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.password: |-
+        {{- with secret "secret/modules/snow-user-ms/elastic-search" -}}{{- .Data.data.PASSWORD -}}
+        {{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.service-now.username: "secret/modules/snow-user-ms/servicenow"
+      vault.hashicorp.com/agent-inject-template-app.service-now.username: |-
+        {{- with secret "secret/modules/snow-user-ms/servicenow" -}}{{- .Data.data.USERNAME -}}
+        {{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.service-now.password: "secret/modules/snow-user-ms/servicenow"
+      vault.hashicorp.com/agent-inject-template-app.service-now.password: |-
+        {{- with secret "secret/modules/snow-user-ms/servicenow" -}}{{- .Data.data.PASSWORD -}}
+        {{- end }}
+    ingress:
+      enabled: true
+      hosts:
+        - host: snow-user-ms.atl-prd.k8s.sec.ibm.com
+          paths:
+            - /
+      tls:
+        - hosts:
+            - snow-user-ms.atl-prd.k8s.sec.ibm.com
+    config:
+      server:
+        port: 3333
+      app:
+        elasticSearch:
+          baseUrl: atl-prd-eas-01a.sec.ibm.com:9200,atl-prd-eas-01b.sec.ibm.com:9200,atl-prd-eas-01c.sec.ibm.com:9200
+          indexName: servicenow
+          type: user
+        serviceNow:
+          scheme: https
+          baseUrl: secsupportdev.service-now.com
+          endpoint: "/api/x_ibmip_int_user/ws/user"
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

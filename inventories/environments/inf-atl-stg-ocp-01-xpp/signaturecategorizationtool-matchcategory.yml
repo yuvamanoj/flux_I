@@ -1,0 +1,34 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: signaturecategtool-matchcategory-atl-stg-ocp-01
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: signaturecategtool-matchcategory-atl-stg-ocp-01
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: signaturecategorizationtool
+    version: 1.3.1-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/signaturecategorizationtool
+      tag: 1.3.1-master.ea781349
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    schedule: "0 18 * * 1-5"
+    args:
+    - /opt/mssdev/SignatureCategorizationTool/bin/SignatureCategorizationTool.sh
+    - matchcategory
+    - input=service
+    - output=service
+    - vendor=all
+    - categoryFilter=only_empty
+    graphite:
+      enabled: true
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.ocp.xpp

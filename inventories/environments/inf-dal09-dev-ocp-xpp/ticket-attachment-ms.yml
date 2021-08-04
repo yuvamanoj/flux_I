@@ -1,0 +1,29 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: ticket-attachment-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: ticket-attachment-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: ticket-attachment-ms
+    version: 1.0.37-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/ticket_attachment_ms
+      tag: 1.0.37-openshift.3e25f7f9
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    env:
+      HOSTNAME_PREFIX: ticket-attachment-ms-dev-ocp
+      elastic_search_ms: https://es-search-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/es_search
+      customer_ms: https://customer-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/customer
+      remedy_update_ms: https://remedy-update-ms-integration.dal09-dev.k8s-lab.sec.ibm.com/remedy_update_ms
+      virus_scan_ms: https://virus-scan-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/virus-scan
+    secretName: cm-token

@@ -1,0 +1,33 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: api-registry
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: api-registry
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: api-registry
+    version: 1.0.43-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/api-registry
+      tag: 1.0.43-openshift.0ad6c833
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    route:
+      enabled: true
+      host: api-registry-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com
+    env:
+      env: dev
+      es_hosts: dal09-dev-solr-01a.sec.ibm.com,dal09-dev-solr-01b.sec.ibm.com,dal09-dev-solr-01c.sec.ibm.com
+      es_port: 9200
+      vault_url: https://dev-vault.sec.ibm.com:8200
+      vault_role_id: fc44c8da-7934-4a40-69ed-ca8680b6d510
+      vault_secret_id: 00a13853-c011-6bbe-aefe-a25534603efd
+      vault_path: secret/modules/api_registry/

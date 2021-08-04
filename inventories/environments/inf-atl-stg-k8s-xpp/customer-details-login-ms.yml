@@ -1,0 +1,62 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: customer-details-login-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-stg.*
+spec:
+  releaseName: customer-details-login-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: customer-details-login-ms
+    version: 2.0.6-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/customer-details-login-ms
+      tag: 2.0.6-master.29a92c97
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.k8s.xpp
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'customer-details-login-ms'
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.username: "secret/modules/customer-details-login-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.username: |-
+        {{- with secret "secret/modules/customer-details-login-ms/elastic-search" -}}{{- .Data.data.ELASTICSEARCH_USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.password: "secret/modules/customer-details-login-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.password: |-
+        {{- with secret "secret/modules/customer-details-login-ms/elastic-search" -}}{{- .Data.data.ELASTICSEARCH_PASSWORD -}}{{- end }}
+    ingress:
+      enabled: true
+      hosts:
+        - host: customer-details-login-ms.atl-stg.k8s.sec.ibm.com
+          paths:
+            - /
+      tls:
+        - hosts:
+            - customer-details-login-ms.atl-stg.k8s.sec.ibm.com
+    config:
+      server:
+        port: 3333
+      app:
+        elasticSearch:
+          baseUrl: atl-stg-eas-01a.sec.ibm.com:9200,atl-stg-eas-01b.sec.ibm.com:9200,atl-stg-eas-01c.sec.ibm.com:9200
+          indexName: hdcustomerdetailslogin
+          type: customerdetailslogin
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

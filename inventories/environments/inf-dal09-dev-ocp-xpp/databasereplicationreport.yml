@@ -1,0 +1,22 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: databasereplicationreport
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-container.*
+spec:
+  releaseName: databasereplicationreport-dal09-dev
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: databasereplicationreport
+    version: 1.1.2-container
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/databasereplicationreport
+      tag: 1.1.2-container.0cac3ee3
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull

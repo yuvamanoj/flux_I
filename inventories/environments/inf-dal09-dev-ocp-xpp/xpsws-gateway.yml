@@ -1,0 +1,55 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: xpsws-gateway
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-xps91732.*
+spec:
+  releaseName: xpsws-gateway
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: xpsws-gateway
+    version: 1.5.15-xps91732
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/xpsws-gateway
+      tag: 1.5.15-xps91732.cddbcb26
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: .5
+      requests:
+        cpu: .25
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'xpsws-gateway'
+      vault.hashicorp.com/agent-inject-secret-app.elasticsearch.password: "secret/modules/xpsws-gateway/elasticsearch"
+      vault.hashicorp.com/agent-inject-template-app.elasticsearch.password: |-
+        {{- with secret "secret/modules/xpsws-gateway/elasticsearch" -}}{{- .Data.data.PASSWORD -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.elasticsearch.username: "secret/modules/xpsws-gateway/elasticsearch"
+      vault.hashicorp.com/agent-inject-template-app.elasticsearch.username: |-
+        {{- with secret "secret/modules/xpsws-gateway/elasticsearch" -}}{{- .Data.data.USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.cm.token: "secret/modules/xpsws-gateway/cm-token"
+      vault.hashicorp.com/agent-inject-template-app.cm.token: |-
+        {{- with secret "secret/modules/xpsws-gateway/cm-token" -}}{{- .Data.data.TOKEN -}}{{- end }}        
+    route:
+      enabled: true
+      host: xpsws-gateway.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com
+    env:
+      environment: ocp-dev
+      es_urls: http://dal09-dev-solr-01a.sec.ibm.com:9200,http://dal09-dev-solr-01b.sec.ibm.com:9200,http://dal09-dev-solr-01c.sec.ibm.com:9200
+      jwt_provider_url: https://jwt-provider-integration.dal09-dev.k8s-lab.sec.ibm.com
+      services_host_rest_url: https://xpsws-gateway.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/rest
+      auth_micro_url: https://authorization-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com/authorization/%sisPermitted?username=%s&requiredPermissions=[%s]

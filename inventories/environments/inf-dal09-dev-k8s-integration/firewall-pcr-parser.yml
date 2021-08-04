@@ -1,0 +1,41 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: firewall-pcr-parser
+  namespace: integration
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: firewall-pcr-parser
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: firewall-pcr-parser
+    version: 0.0.31-integration
+  values:
+    service:
+      targetPort: 3000
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/firewall-pcr-parser
+      tag: 0.0.32-integration.57bee51d
+    ingress:
+      enabled: true
+      hosts:
+      - host: firewall-pcr-parser-integration.dal09-dev.k8s-lab.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - firewall-pcr-parser-integration.dal09-dev.k8s-lab.sec.ibm.com
+    config:
+      server:
+        port: 3000
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG
+

@@ -1,0 +1,62 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: log-parser-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-stg.*
+spec:
+  releaseName: log-parser-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: log-parser-ms
+    version: 1.0.2-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 300
+    livenessProbe:
+      initialDelaySeconds: 300
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/log-parser-ms
+      tag: 1.0.2-master.d3b6be19
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.k8s.xpp
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'log-parser-ms'
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.username: "secret/modules/log-parser-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.username: |-
+        {{- with secret "secret/modules/log-parser-ms/elastic-search" -}}{{- .Data.data.USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.password: "secret/modules/log-parser-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.password: |-
+        {{- with secret "secret/modules/log-parser-ms/elastic-search" -}}{{- .Data.data.PASSWORD -}}{{- end }}
+    ingress:
+      enabled: true
+      hosts:
+        - host: log-parser-ms.atl-stg.k8s.sec.ibm.com
+          paths:
+            - /
+      tls:
+        - hosts:
+            - log-parser-ms.atl-stg.k8s.sec.ibm.com
+    config:
+      server:
+        port: 3333
+      app:
+        elasticSearch:
+          baseUrl: atl-stg-eas-01a.sec.ibm.com:9200,atl-stg-eas-01b.sec.ibm.com:9200,atl-stg-eas-01c.sec.ibm.com:9200
+          indexName: opslogparser
+          type: logparser
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

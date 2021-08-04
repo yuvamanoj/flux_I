@@ -1,0 +1,62 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: contact-role-detail-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: contact-role-detail-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: contact-role-detail-ms
+    version: 1.0.0-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/contact-role-detail-ms
+      tag: 1.0.0-master.66d0be08
+    graphite:
+      enabled: true
+      host: ruh01-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'contact-role-detail-ms'
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.username: "secret/modules/contact-role-detail-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.username: |-
+        {{- with secret "secret/modules/contact-role-detail-ms/elastic-search" -}}{{- .Data.data.ELASTICSEARCH_USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.password: "secret/modules/contact-role-detail-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.password: |-
+        {{- with secret "secret/modules/contact-role-detail-ms/elastic-search" -}}{{- .Data.data.ELASTICSEARCH_PASSWORD -}}{{- end }}
+    ingress:
+      enabled: true
+      hosts:
+        - host: contact-role-detail-ms.ruh01-prd.k8s.sec.ibm.com
+          paths:
+            - /
+      tls:
+        - hosts:
+            - contact-role-detail-ms.ruh01-prd.k8s.sec.ibm.com
+    config:
+      server:
+        port: 3333
+      app:
+        elasticSearch:
+          baseUrl: ruh01-prd-eas-01a.sec.ibm.com:9200,ruh01-prd-eas-01b.sec.ibm.com:9200,ruh01-prd-eas-01c.sec.ibm.com:9200
+          indexName: hdcontactroledetail
+          type: hdcontactroledetail
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

@@ -1,0 +1,55 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mars-sentinel-request-builder
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: mars-sentinel-request-builder
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/mars-sentinel-request-builder
+    ref: v1.0.6
+    path: chart
+  values:
+    replicaCount: 1
+    revisionHistoryLimit: 1
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/mars-sentinel-request-builder
+      tag: 1.0.6-master.564306a4
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.k8s.master
+    route:
+      enabled: false
+    ingress:
+      enabled: true
+      hosts:
+      - host: mars-sentinel-request-builder.atl-stg.k8s.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - mars-sentinel-request-builder.atl-stg.k8s.sec.ibm.com
+    secretName: mars-sentinel-request-builder
+    config:
+      mars:
+        services:
+          baseUrl: https://stg-services.sec.ibm.com
+          timeoutSeconds: 30
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      LOG_FORMAT: json
+      LOG_LEVEL: DEBUG
+      NEW_RELIC_LOG_FILE_NAME: STDOUT
+      NEW_RELIC_LOG_LEVEL: WARN
+      NEW_RELIC_SYNC_STARTUP: true
+      NEW_RELIC_AGENT_ENABLED: true
+      NEW_RELIC_SEND_DATA_ON_EXIT: true
+      NEW_RELIC_SEND_DATA_ON_EXIT_THRESHOLD: 60
+      NEW_RELIC_APP_NAME: mars-sentinel-request-builder-stg
+      NEW_RELIC_LABELS: Application:Mars-sentinel-request-builder;Org:Lhs;Region:ATL;Stack:Stg;Namespace:Master

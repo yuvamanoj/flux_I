@@ -1,0 +1,25 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: jira-automation
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*master*
+spec:
+  releaseName: jira-automation
+  forceUpgrade: true
+  test:
+    enable: true
+  chart:
+    git: git@github.ibm.com:mss-qa/jira-automation
+    ref: master
+    path: chart
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/jira-automation
+      tag: 1.0.0-master.e02fa7ac
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+# TEMPLATE: Insert other required configuration values here

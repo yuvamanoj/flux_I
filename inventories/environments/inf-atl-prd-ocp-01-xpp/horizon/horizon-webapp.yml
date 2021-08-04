@@ -1,0 +1,48 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: horizon-webapp
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  targetNamespace: horizon
+  releaseName: horizon-webapp
+  chart:
+    git: git@github.ibm.com:managed-security/horizon-webapp
+    ref: v3.2.1
+    path: chart
+  values:
+    service:
+      port: 3000
+    resources:
+      requests:
+        cpu: .5
+        memory: 512Mi
+      limits:
+        cpu: 1
+        memory: 3Gi
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/horizon-webapp
+      tag: 3.2.1
+    log:
+      level: "debug"
+    config:
+      ISSUER: "https://login.ibm.com/oidc/endpoint/default"
+      HORIZON_BFF: "http://horizon-webapp-bff:3000"
+      REACT_APP_PORTAL_URL: "https://portal.sec.ibm.com"
+      SASS_PATH: "node_modules"
+      PORT: "3000"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/role: "horizon-webapp"
+      vault.hashicorp.com/agent-inject-secret-.env: "secret/data/modules/horizon-webapp/ibmid"
+      vault.hashicorp.com/agent-inject-template-.env: |-
+        {{- with secret "secret/data/modules/horizon-webapp/ibmid" -}}
+        IBM_ID_CLIENT_ID={{ .Data.data.CLIENT_ID }}
+        IBM_ID_CLIENT_SECRET={{ .Data.data.CLIENT_SECRET }}
+        PASSPORT_SESSION_SECRET={{ .Data.data.PASSPORT_SESSION_SECRET }}
+        {{ end }}

@@ -1,0 +1,43 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: customer-role-permissions-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: customer-role-permissions-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: customer-role-permissions-ms
+    version: 1.1.28-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/customer-role-permissions-ms
+      tag: 1.1.28-openshift.b434d538
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    route:
+      host: customer-role-permissions-ms.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com
+    env:
+      ENV: stg
+      vault_url: https://stg-vault.sec.ibm.com:8200
+      vault_role_id: 50dfec07-7367-7ae7-36ba-a49afc4c0d93
+      vault_secret_id: 48b20f6d-47b8-1885-6f56-6a45b6d3bdc9
+      vault_path: secret/modules/customer_role_permissions_ms/
+      customer_contact_ms: https://customer-contact-ms.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com/customer_contact
+      elastic_search_client_transport_hosts: atl-stg-eas-01a.sec.ibm.com,atl-stg-eas-01b.sec.ibm.com,atl-stg-eas-01c.sec.ibm.com
+      elastic_search_cluster_name: xps-atl-stg
+      elastic_search_mss_ssl_server_keyStore: /opt/mssdev/customer_role_permissions_ms/conf/esclientkeystore
+      elastic_search_mss_ssl_server_trustStore: /opt/mssdev/customer_role_permissions_ms/conf/esclienttruststore
+      elastic_search_client_type: transport
+      elastic_search_port: 9300
+      elastic_search_client_ping_timeout_seconds: 60
+      elastic_search_client_ssl_protocol_version: TLSv1.2
+      elastic_search_ssl_enabled: true
+      elastic_search_rest_enabled: false
+      elastic_search_forceNativeClientAuth: true
+      elastic_search_forceRestClientAuth: false

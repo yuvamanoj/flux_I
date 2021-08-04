@@ -1,0 +1,53 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mdr-cs-puma-drone
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: semver:1.1.0
+spec:
+  releaseName: mdr-cs-puma-drone
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/mdr-cs-puma-drone
+    ref: master
+    path: mdr-cs-puma-drone
+  values:
+    devices:
+    - PR0000000033462
+    - PR0000000036722
+    - PR0000000031376
+    - PR0000000021522
+    - PR0000000026604
+    - PR0000000031517
+    - PR0000000037602
+    - PR0000000033839
+    - PR0000000034265
+    - PR0000000035937
+    - PR0000000035938
+    - PR0000000034266
+    - PR0000000034264
+    - PR0000000040848
+    - PR0000000041367
+    - PR0000000041368
+    - PR0000000043415
+    - PR0000000043464
+    - PR0000000044913
+    - PR0000000045018
+    - PR0000000046384
+    - PR0000000046287
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/mdr-cs-puma-drone
+      tag: v1.1.0
+    secretName: "mdr-cs-puma-drone"
+    testSyslogServer:
+      enabled: false
+      name: mdr-cs-puma-drone-syslog
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      SERVICES_BASE_URL: services.sec.ibm.com
+      SYSLOG_SERVER_IP: atl-prd-agg-01a.sec.ibm.com
+      SYSLOG_SERVER_PORT: 514
+      FIELD_DELIM: "|"

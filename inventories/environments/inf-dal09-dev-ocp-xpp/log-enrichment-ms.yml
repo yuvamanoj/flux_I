@@ -1,0 +1,42 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: log-enrichment-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: log-enrichment-ms
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/log-enrichment-ms
+    ref: integration
+    path: chart
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/log-enrichment-ms
+      tag: 1.0.0-integration.2de94ee8
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: 3
+      requests:
+        cpu: 2.25
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    log:
+      level: INFO
+      format: plain
+    config:
+      app:
+        messaging-url: 'pulsar://pulsar-proxy.pulsar.svc.cluster.local:6650'
+        outbound-topic-name: 'enrichment-device-traffic'
+        inbound-topic-name: 'qradar-parsed-log-traffic'
+        inbound-subscription-name: 'log-enrichment'
+        inbound-subscription-type: 'Failover'
+        json-parser: "DSL_JSON_OBJECT_TRIM"

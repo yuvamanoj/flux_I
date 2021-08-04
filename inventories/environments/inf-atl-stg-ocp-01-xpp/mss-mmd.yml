@@ -1,0 +1,39 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mss-mmd
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: mss-mmd
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: mss-mmd
+    version: 1.0.0-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/mss-mmd
+      tag: 2.0.0-master.b6f23a95
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: true
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.ocp.xpp
+    config:
+      security:
+        oauth2:
+          client:
+            access-token-uri: https://preprod.login.w3.ibm.com/oidc/endpoint/default/token
+            user-authorization-uri: https://preprod.login.w3.ibm.com/oidc/endpoint/default/authorize
+          resource:
+            user-info-uri: https://preprod.login.w3.ibm.com/oidc/endpoint/default/userinfo
+      spring:
+        profiles:
+          active: stg
+        datasource:
+          url: "jdbc:db2://02a3be17-3906-4e5a-98e4-33120532a590.bu6tc4nd0urletsa6ufg.databases.appdomain.cloud:32054/BLUDB:currentSchema=PROD;sslConnection=true;"

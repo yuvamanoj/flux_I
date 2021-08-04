@@ -1,0 +1,47 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: device-policy-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: device-policy-ms
+  forceUpgrade: false
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: device-policy-ms
+    version: 0.0.2-integration
+  values:
+    service:
+      targetPort: 3000
+    readinessProbe:
+      initialDelaySeconds: 60
+    livenessProbe:
+      initialDelaySeconds: 60
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/device-policy-ms
+      tag: 0.0.2-integration.3d5d21ff
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    config:
+      server:
+        port: 3000
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'device-policy-ms'
+      vault.hashicorp.com/agent-inject-secret-mss.token: "secret/data/modules/device-policy-ms/client/services/auth"
+      vault.hashicorp.com/agent-inject-template-mss.token: |-
+        {{- with secret "secret/data/modules/device-policy-ms/client/services/auth" -}}
+        {{- .Data.data.MSSToken -}}
+        {{- end }}

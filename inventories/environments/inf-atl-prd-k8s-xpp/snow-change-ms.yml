@@ -1,0 +1,52 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: snow-change-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: snow-change-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: snow-change-ms
+    version: 1.0.1-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/snow-change-ms
+      tag: 1.0.1-master.601903bd
+    graphite:
+      enabled: true
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    secretName: snow-change-ms
+    ingress:
+      enabled: true
+      hosts:
+        - host: snow-change-ms.atl-prd.k8s.sec.ibm.com
+          paths:
+            - /
+      tls:
+        - hosts:
+            - snow-change-ms.atl-prd.k8s.sec.ibm.com
+          secretName: snow-change-ms
+    config:
+      server:
+        port: 3333
+      app:
+        elasticSearch:
+          baseUrl: atl-prd-eas-01a.sec.ibm.com:9200,atl-prd-eas-01b.sec.ibm.com:9200,atl-prd-eas-01c.sec.ibm.com:9200
+          indexName: servicenow
+          type: change_request
+      env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

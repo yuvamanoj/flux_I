@@ -1,0 +1,60 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: qradar-log-type-lookup-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: qradar-log-type-lookup-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: qradar-log-type-lookup-ms
+    version: 1.0.6-master
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/qradar-log-type-lookup-ms
+      tag: 1.0.6-master.db683111
+    graphite:
+      enabled: true
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'qradar-log-type-lookup-ms'
+      vault.hashicorp.com/agent-inject-secret-app.db.username: "secret/modules/qradar-log-type-lookup-ms/mss-datasource"
+      vault.hashicorp.com/agent-inject-template-app.db.username: |-
+        {{- with secret "secret/modules/qradar-log-type-lookup-ms/mss-datasource" -}}{{- .Data.data.USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.db.password: "secret/modules/qradar-log-type-lookup-ms/mss-datasource"
+      vault.hashicorp.com/agent-inject-template-app.db.password: |-
+        {{- with secret "secret/modules/qradar-log-type-lookup-ms/mss-datasource" -}}{{- .Data.data.PASSWORD -}}{{- end }}
+    ingress:
+      enabled: true
+      hosts:
+        - host: qradar-log-type-lookup-ms.atl-prd.k8s.sec.ibm.com
+          paths:
+            - /
+      tls:
+        - hosts:
+            - qradar-log-type-lookup-ms.atl-prd.k8s.sec.ibm.com
+    config:
+      server:
+        port: 3333
+      app:
+        db:
+          jdbc-url: jdbc:mysql://atl-prd-mssdb-01a.mss.iss.net:3306/mss
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

@@ -1,0 +1,51 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: alert-status-vendor-router
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: alert-status-vendor-router
+  targetNamespace: xpp
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: alert-status-vendor-router
+    version: 2.0.1-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/alert-status-vendor-router
+      tag: 2.0.1-master.5a265be8
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.k8s.xpp
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'alert-status-vendor-router'
+      vault.hashicorp.com/agent-inject-secret-mdr.kafka.username: "secret/modules/alert-status-vendor-router/kafka"
+      vault.hashicorp.com/agent-inject-template-mdr.kafka.username: |-
+        {{- with secret "secret/modules/alert-status-vendor-router/kafka" -}}{{- .Data.data.KAFKA_USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-mdr.kafka.password: "secret/modules/alert-status-vendor-router/kafka"
+      vault.hashicorp.com/agent-inject-template-mdr.kafka.password: |-
+        {{- with secret "secret/modules/alert-status-vendor-router/kafka" -}}{{- .Data.data.KAFKA_PASSWORD -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-kafka.keystore.jks: "secret/modules/alert-status-vendor-router/kafka"
+      vault.hashicorp.com/agent-inject-template-kafka.keystore.jks: |-
+        {{- with secret "secret/modules/alert-status-vendor-router/kafka" -}}{{- .Data.data.KAFKA_KEYSTORE | base64Decode -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-kafka.truststore.jks: "secret/modules/alert-status-vendor-router/kafka"
+      vault.hashicorp.com/agent-inject-template-kafka.truststore.jks: |-
+        {{- with secret "secret/modules/alert-status-vendor-router/kafka" -}}{{- .Data.data.KAFKA_TRUSTSTORE | base64Decode -}}{{- end }}
+    config:
+      spring:
+        kafka:
+          bootstrap-servers: atl-stg-kfk-01a.sec.ibm.com:9093, atl-stg-kfk-01b.sec.ibm.com:9093,atl-stg-kfk-01c.sec.ibm.com:9093
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      LOG_FORMAT: json
+      LOG_LEVEL: DEBUG

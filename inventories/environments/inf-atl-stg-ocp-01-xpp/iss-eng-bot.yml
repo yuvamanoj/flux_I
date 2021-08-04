@@ -1,0 +1,33 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: iss-eng-bot
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: iss-eng-bot-atl-stg-ocp
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: iss-eng-bot
+    version: 1.2.3-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/iss-eng-bot
+      tag: 1.2.3-master.e7b0f70f
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    env:
+    - name: STACK
+      value: stg
+    resources:
+      requests:
+        cpu: 1
+        memory: 256Mi
+      limits:
+        cpu: 1
+        memory: 1024Mi
+    # TEMPLATE: Insert other required configuration values here

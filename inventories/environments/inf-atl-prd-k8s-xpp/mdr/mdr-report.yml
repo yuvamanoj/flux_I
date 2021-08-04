@@ -1,0 +1,46 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mdr-report
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: mdr-report
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/mdr-report
+    ref: v0.0.16
+    path: chart
+  values:
+    replicaCount: 4
+    revisionHistoryLimit: 1
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/mdr-report
+      tag: 0.0.16
+    graphite:
+      enabled: true
+      host: atl-prd-statsnode-01a.sec.ibm.com
+      prefix: prd.k8s.xpp
+    secretName: mdr-report
+    config:
+      mdr:
+        attachmentDescription: General
+        services:
+          baseUrl: https://services.sec.ibm.com
+          timeoutSeconds: 60
+      spring:
+        kafka:
+          bootstrap-servers: atl-prd-kfk-01a.sec.ibm.com:9093,atl-prd-kfk-01b.sec.ibm.com:9093,atl-prd-kfk-01c.sec.ibm.com:9093
+          consumer:
+            properties:
+              max:
+                poll:
+                  records: 5
+                  interval:
+                    ms: 1200000
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      LOG_FORMAT: json
+      LOG_LEVEL: DEBUG

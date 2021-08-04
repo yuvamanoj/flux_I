@@ -1,0 +1,46 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: log-parsing-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: log-parsing-ms
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/log-parsing-ms
+    ref: integration
+    path: chart
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/log-parsing-ms
+      tag: 1.0.0-integration.f48e3624
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: 4
+      requests:
+        cpu: 3
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    log:
+      level: info
+      format: plain
+    config:
+      app:
+        device-cache: "device.xml"
+        log-parer-mapping-cache: "conf/logParserMapping.xml"
+        monolithic-services-url: "https://dal09-dev-services.sec.ibm.com/remoting"
+        messaging-url: "pulsar://pulsar-proxy.pulsar.svc.cluster.local:6650"
+        outbound-topic-name: "qradar-parsed-log-traffic"
+        unknown-topic-name: ""
+        inbound-topic-name: "qradar-raw-device-traffic"
+        inbound-subscription-name: "log-parser"
+        max-batch-time-in-seconds: 1
+        max-num-messages: 1000

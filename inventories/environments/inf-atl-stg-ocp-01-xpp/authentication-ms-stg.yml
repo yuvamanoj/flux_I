@@ -1,0 +1,26 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: authentication-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: authentication-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: authentication-ms
+    version: 1.0.22-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/authentication-ms
+      tag: 1.0.23-openshift.30ed2b81
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    env:
+      env: stg
+      f5Url: https://stg-services.sec.ibm.com:443
+      ingressFormatString: https://%s-authenticator.atl-stg.k8s.sec.ibm.com

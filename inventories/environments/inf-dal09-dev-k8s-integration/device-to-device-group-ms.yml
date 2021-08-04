@@ -1,0 +1,66 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: device-to-device-group-ms
+  namespace: integration
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: device-to-device-group-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: device-to-device-group-ms
+    version: 1.0.4-integration
+  values:
+    log:
+      level: DEBUG
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/device-to-device-group-ms
+      tag: 1.0.4-integration.09e44b4f
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.k8s.integration
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'device-to-device-group-ms'
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.username: "secret/modules/device-to-device-group-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.username: |-
+        {{- with secret "secret/modules/device-to-device-group-ms/elastic-search" -}}{{- .Data.data.USERNAME -}}
+        {{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.elastic-search.password: "secret/modules/machine-platform-menu-ms/elastic-search"
+      vault.hashicorp.com/agent-inject-template-app.elastic-search.password: |-
+        {{- with secret "secret/modules/device-to-device-group-ms/elastic-search" -}}{{- .Data.data.PASSWORD -}}
+        {{- end }}
+    ingress:
+      enabled: true
+      hosts:
+      - host: device-to-device-group-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - device-to-device-group-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+    config:
+      server:
+        port: 3333
+      app:
+        elasticSearch:
+          baseUrl: dal09-dev-solr-01a.sec.ibm.com:9200,dal09-dev-solr-01b.sec.ibm.com:9200,dal09-dev-solr-01c.sec.ibm.com:9200
+          indexName: opsgroupmapping
+          type: devicegroup
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

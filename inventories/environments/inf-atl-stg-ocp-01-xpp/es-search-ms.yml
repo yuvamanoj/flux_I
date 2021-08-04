@@ -1,0 +1,33 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: es-search-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: es-search-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: es-search-ms
+    version: 1.1.10-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/es-search-ms
+      tag: 1.1.11-openshift.2b4430c1
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    route:
+      host: es-search-ms.apps-priv.atl-stg-ocp-01.cl.sec.ibm.com
+    env:
+      vault_url: https://stg-vault.sec.ibm.com:8200
+      vault_role_id: b0364010-71e7-f717-02cb-d236b44adfe3
+      vault_secret_id: dd7ed6a3-0446-5a4b-2b8d-51e86b6c35fe
+      vault_path: secret/modules/es_search_ms/
+      elastic_search_client_transport_hosts: atl-stg-eas-01a.sec.ibm.com,atl-stg-eas-01b.sec.ibm.com,atl-stg-eas-01c.sec.ibm.com
+      elastic_search_cluster_name: xps-atl-stg
+      elastic_search_mss_ssl_server_keyStore: /opt/mssdev/es_search_ms/conf/esclientkeystore
+      elastic_search_mss_ssl_server_trustStore: /opt/mssdev/es_search_ms/conf/esclienttruststore

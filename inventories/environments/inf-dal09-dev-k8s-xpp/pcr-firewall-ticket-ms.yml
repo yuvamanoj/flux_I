@@ -1,0 +1,112 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: pcr-firewall-ticket-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  service:
+    targetPort: 3333
+  releaseName: pcr-firewall-ticket-ms
+  forceUpgrade: false
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: pcr-firewall-ticket-ms
+    version: 0.0.15-integration
+  values:
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/pcr-firewall-ticket-ms
+      tag: 0.0.15-integration.05757cf4
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'pcr-firewall-ticket-ms'
+      vault.hashicorp.com/agent-inject-secret-app.constants.service_auth_token: "secret/modules/pcr-firewall-ticket-ms/client/services/auth"
+      vault.hashicorp.com/agent-inject-template-app.constants.service_auth_token: |-
+        {{- with secret "secret/modules/pcr-firewall-ticket-ms/client/services/auth" -}}{{- .Data.data.TOKEN -}}{{- end }}
+    ingress:
+      enabled: true
+      hosts:
+      - host: pcr-firewall-ticket-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - pcr-firewall-ticket-ms-integration.dal09-dev.k8s-lab.sec.ibm.com
+    config:
+      server:
+        port: 3333
+      app:
+        constants:
+          ops_trouble_ticket_issue_type: PCR - Change Policy Detailed
+          ops_trouble_ticket_service: Managed Firewall
+          ops_trouble_ticket_severity: SEV4
+          roles_permitted: MFS - All Roles,MFS - Policy Change Authority
+          exclude_auth_for_urls: /swagger,/actuator/health
+        service:
+          url:
+            pcr_parser_url: https://dal09-dev-services.sec.ibm.com/micro/firewall-pcr-spreadsheet-parser
+            device_url_wtih_hostname: https://dal09-dev-services.sec.ibm.com/micro/device?hostName={0}&status=Active
+            device_url_wtih_partner_device_ids: https://dal09-dev-services.sec.ibm.com/micro/device?partnerDeviceIds={0}&status=Active
+            customer_roles_url: https://dal09-dev-services.sec.ibm.com/micro/customer_role_permissions/
+            entitlement_url: https://dal09-dev-services.sec.ibm.com/micro/entitlement?statusVal=Active&name=24+Hour+PCR+SLA&customerId={0}
+            pcr_cost_calculator_url: https://dal09-dev-services.sec.ibm.com/micro/pcr_cost_calculator/get_entitlement_cost
+            ticket_detail_url: https://dal09-dev-services.sec.ibm.com/micro/ticket_detail
+            ticket_attachment_url: https://dal09-dev-services.sec.ibm.com/micro/ticket_attachment
+            jwt_verification_url: https://dal09-dev-services.sec.ibm.com/micro/jwt_provider/verify
+            pcr_parser_json_url: https://dal09-dev-services.sec.ibm.com/micro/firewall-pcr-parser/validate
+      error:
+        code:
+          no_device_names_or_partner_device_ids_present: 400
+          both_device_names_and_partner_device_id_present: 400
+          no_device_found: 404
+          incorrect_device_count: 400
+          no_roles_found: 400
+          no_valid_roles: 403
+          no_entitlements_found: 400
+          no_enough_entitlements_remaining: 400
+          unauthorized: 401
+          forbidden: 403
+          internal_error: 500
+        message:
+          no_device_names_or_partner_device_ids_present: None of 'deviceNames' or
+            'partnerDeviceIDs' has been provided. Any one of them must be provided.
+          both_device_names_and_partner_device_id_present: One of 'deviceNames' and
+            'partnerDeviceIDs' must be provided, not both.
+          no_device_found: No active devices found with given 'deviceNames' or 'partnerDeviceIDs.'
+          incorrect_device_count: Expected and actual device count do not match.
+          no_roles_found: No roles Found for the user.
+          no_valid_roles: You do not have valid roles needed to be able to create
+            a PCR ticket.
+          no_entitlements_found: No 24 Hour Entitlements found.
+          no_enough_entitlements_remaining: Number of SLA units purchased are not
+            sufficient for this request.
+          unauthorized: The credentials provided were not correct.
+          forbidden: Access is denied. Please contact suppprt.
+          internal_error: An error occurred.
+        http_status:
+          no_device_names_or_partner_device_ids_present: 400
+          both_device_names_and_partner_device_id_present: 400
+          no_device_found: 404
+          incorrect_device_count: 400
+          no_roles_found: 400
+          no_valid_roles: 403
+          no_entitlements_found: 400
+          no_enough_entitlements_remaining: 400
+          unauthorized: 401
+          forbidden: 403
+          internal_error: 500
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

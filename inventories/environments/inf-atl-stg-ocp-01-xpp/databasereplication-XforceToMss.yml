@@ -1,0 +1,41 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: xforcetomss-atl-stg-job
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: xforcetomss-atl-stg-job
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: databasereplication
+    version: 1.3.1-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/databasereplication
+      tag: 1.3.1-master.f06c5b04
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    schedule: "32 20 * * 0"
+    args:
+      path: /opt/mssdev/DatabaseReplication/bin/XforceToMssReplication-parallel.sh
+      cmd: run
+    env:
+      name: STACK
+      value: stg
+    env-extras:
+    - name: JOB_INDEX
+      value: 1-6
+    propertiesViaConfigMap:
+      enabled: true
+      volumeMounts:
+      - name: app-data
+        mountPath: /opt/mssdev/properties
+      volumes:
+      - name: app-data
+        configMap:
+          name: dbrep-xforce-config

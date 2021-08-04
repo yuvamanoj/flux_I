@@ -1,0 +1,34 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: glass-webui
+  namespace: master
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-develop.*
+spec:
+  releaseName: glass-webui-flux
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    version: 1.0.28-develop
+    name: glass-webui
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/glass-webui
+      tag: 1.0.29-develop.36e08243
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      SERVER: https://glass-backend-master.atl-stg.k8s.sec.ibm.com
+      NEXTAUTH_URL: https://glass-webui-master.atl-stg.k8s.sec.ibm.com
+      MSS_API: https://stg-services.sec.ibm.com
+      PIWIK_SERVER: https://piwik.sec.ibm.com
+      PIWIK_SITE_ID: 28
+      PIWIK_CONTAINER_ID: Ur89X3Rj
+      NEW_RELIC_APP_NAME: Glass-UI-stg
+    ingress:
+      host: atl-stg.k8s.sec.ibm.com
+      appDnsAlias: stg-glass.sec.ibm.com

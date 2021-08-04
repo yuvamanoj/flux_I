@@ -1,0 +1,33 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: tdi-app-integration
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: tdi-app-integration
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: tdi-app-integration
+    version: 0.0.1
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/tdi-app-integration
+      tag: 0.0.1-master.fc738adf
+    resources:
+      limits:
+        cpu: 2
+      requests:
+        cpu: 1
+    secretName: tdi-app-integration-dev-secret
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      :WQprefix: dev.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here

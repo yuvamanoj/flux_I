@@ -1,0 +1,26 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: cerberus-tab-generator-customer-config
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: cerberus-tab-generator-customer-config
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: cerberus-tab-generator-customer-config
+    version: 0.0.11-integration
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/cerberus-tab-generator-customer-config
+      tag: 0.0.11-integration.084360ab
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp

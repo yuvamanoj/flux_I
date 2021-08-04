@@ -1,0 +1,31 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: release-metrics
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: release-metrics
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: release-metrics
+    version: 1.0.0-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/release-metrics
+      tag: 1.0.0-master.7b527794
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: .5
+      requests:
+        cpu: .25
+      # graphite:
+      #   enabled: true
+      #   host: dal09-prd-statsnode-01a.sec.ibm.com
+      #   prefix: dev.ocp.xpp

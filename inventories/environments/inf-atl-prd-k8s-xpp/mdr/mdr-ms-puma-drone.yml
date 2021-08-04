@@ -1,0 +1,35 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mdr-ms-puma-drone
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: mdr-ms-puma-drone
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/mdr-ms-puma-drone
+    ref: master
+    path: chart
+  values:
+    devices:
+    - PR0000000033359
+    - PR0000000039496
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/mdr-ms-puma-drone
+      tag: 0.0.4-master.869d8612
+    secretName: "mdr-ms-puma-drone"
+    config:
+      mdr:
+        logFetchInterval: "600000"
+        services:
+          baseUrl: https://services.sec.ibm.com
+        log-feed:
+          destinationIp: atl-prd-agg-01a.sec.ibm.com
+        elasticSearch:
+          baseUrl: "atl-prd-eas-01a.sec.ibm.com:"
+          indexName: manage_state
+          type: state

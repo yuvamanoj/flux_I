@@ -1,0 +1,34 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: signaturecategtool-matchcategory-dal09-dev-ocp-01
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-container.*
+spec:
+  releaseName: signaturecategtool-matchcategory-dal09-dev-ocp-01
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: signaturecategorizationtool
+    version: 1.3.1-container
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/signaturecategorizationtool
+      tag: 1.3.1-container.7b753038
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    schedule: "0 18 * * 1-5"
+    args:
+    - /opt/mssdev/SignatureCategorizationTool/bin/SignatureCategorizationTool.sh
+    - matchcategory
+    - input=service
+    - output=service
+    - vendor=all
+    - categoryFilter=only_empty
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp

@@ -1,0 +1,85 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mars-azure-metrics-collector
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: mars-azure-metrics-collector
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/mars-azure-metrics-collector
+    ref: integration
+    path: chart
+  values:
+    replicaCount: 1
+    revisionHistoryLimit: 1
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/mars-azure-metrics-collector
+      tag: 0.0.12-integration.862ebaf9
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: stg.k8s.master
+    route:
+      enabled: false
+    secretsDir: "/vault/secrets"
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/role: "mars-azure-metrics-collector"
+      vault.hashicorp.com/agent-inject-secret-app.services.admin_token: "secret/data/modules/mars-azure-metrics-collector/client/services/auth"
+      vault.hashicorp.com/agent-inject-template-app.services.admin_token: |-
+        {{- with secret "secret/data/modules/mars-azure-metrics-collector/client/services/auth" -}}{{- .Data.data.TOKEN -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.kafka.encryption_secret: "secret/modules/mars-azure-metrics-collector/kafka"
+      vault.hashicorp.com/agent-inject-template-app.kafka.encryption_secret: |-
+        {{- with secret "secret/modules/mars-azure-metrics-collector/kafka" -}}{{- .Data.data.KAFKA_ENCRYPTION_SECRET -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-kafka.keystore.jks: "secret/modules/mars-azure-metrics-collector/kafka"
+      vault.hashicorp.com/agent-inject-template-kafka.keystore.jks: |-
+        {{- with secret "secret/modules/mars-azure-metrics-collector/kafka" -}}{{- .Data.data.KAFKA_KEYSTORE | base64Decode -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.kafka.keystore_password: "secret/modules/mars-azure-metrics-collector/kafka"
+      vault.hashicorp.com/agent-inject-template-app.kafka.keystore_password: |-
+        {{- with secret "secret/modules/mars-azure-metrics-collector/kafka" -}}{{- .Data.data.KAFKA_KEYSTORE_PASSWORD -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.kafka.key_password: "secret/modules/mars-azure-metrics-collector/kafka"
+      vault.hashicorp.com/agent-inject-template-app.kafka.key_password: |-
+        {{- with secret "secret/modules/mars-azure-metrics-collector/kafka" -}}{{- .Data.data.KAFKA_KEY_PASSWORD -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.kafka.username: "secret/modules/mars-azure-metrics-collector/kafka"
+      vault.hashicorp.com/agent-inject-template-app.kafka.username: |-
+        {{- with secret "secret/modules/mars-azure-metrics-collector/kafka" -}}{{- .Data.data.KAFKA_USERNAME -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.kafka.password: "secret/modules/mars-azure-metrics-collector/kafka"
+      vault.hashicorp.com/agent-inject-template-app.kafka.password: |-
+        {{- with secret "secret/modules/mars-azure-metrics-collector/kafka" -}}{{- .Data.data.KAFKA_PASSWORD -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-kafka.truststore.jks: "secret/modules/mars-azure-metrics-collector/kafka"
+      vault.hashicorp.com/agent-inject-template-kafka.truststore.jks: |-
+        {{- with secret "secret/modules/mars-azure-metrics-collector/kafka" -}}{{- .Data.data.KAFKA_TRUSTSTORE | base64Decode -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.kafka.truststore_password: "secret/modules/mars-azure-metrics-collector/kafka"
+      vault.hashicorp.com/agent-inject-template-app.kafka.truststore_password: |-
+        {{- with secret "secret/modules/mars-azure-metrics-collector/kafka" -}}{{- .Data.data.KAFKA_TRUSTSTORE_PASSWORD -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-newrelic: "secret/data/modules/mars-azure-metrics-collector/newrelic"
+      vault.hashicorp.com/agent-inject-template-newrelic: |-
+        {{- with secret "secret/data/modules/mars-azure-metrics-collector/newrelic" -}}{{- .Data.data.NEW_RELIC_LICENSE_KEY -}}{{- end }}
+      vault.hashicorp.com/agent-inject-command-newrelic: "/bin/sh -c '/vault/secrets/newrelic.sh;'"
+    config:
+      app:
+        services:
+          baseUrl: https://stg-services.sec.ibm.com
+          timeoutSeconds: 30
+      spring:
+        kafka:
+          bootstrap-servers: atl-stg-kfk-01a.sec.ibm.com:9093,atl-stg-kfk-01b.sec.ibm.com:9093,atl-stg-kfk-01c.sec.ibm.com:9093
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      LOG_FORMAT: json
+      LOG_LEVEL: DEBUG
+      NEW_RELIC_LOG_FILE_NAME: STDOUT
+      NEW_RELIC_LOG_LEVEL: WARN
+      NEW_RELIC_SYNC_STARTUP: true
+      NEW_RELIC_AGENT_ENABLED: true
+      NEW_RELIC_SEND_DATA_ON_EXIT: true
+      NEW_RELIC_SEND_DATA_ON_EXIT_THRESHOLD: 60
+      NEW_RELIC_APP_NAME: mars-azure-metrics-collector-stg
+      NEW_RELIC_LABELS: Application:Mars-azure-metrics-collector;Org:Lhs;Region:ATL;Stack:Stg;Namespace:xpp

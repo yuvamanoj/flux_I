@@ -1,0 +1,41 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: utkarsh-java-helloworld
+  namespace: integration
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: utkarsh-java-helloworld
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: utkarsh-java-helloworld
+    version: 0.0.1-integration
+  values:
+    service:
+      targetPort: 8308
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/utkarsh-java-helloworld
+      tag: 0.0.5-integration.78843144
+    ingress:
+      enabled: true
+      hosts:
+      - host: utkarsh-java-helloworld-integration.dal09-dev.k8s-lab.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - utkarsh-java-helloworld-integration.dal09-dev.k8s-lab.sec.ibm.com
+    config:
+      server:
+        port: 8308
+      env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG

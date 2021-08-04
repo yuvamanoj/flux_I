@@ -1,0 +1,32 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: cyberreason-remediate
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-develop.*
+spec:
+  releaseName: cyberreason-remediate
+  forceUpgrade: true
+  chart:
+    git: git@github.ibm.com:managed-security/cyberreason-remediate
+    ref: develop
+    path: chart
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/cyberreason-remediate
+      tag: 0.0.1-develop.4ffbfdb9
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: 5
+      requests:
+        cpu: 5
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+# TEMPLATE: Insert other required configuration values here

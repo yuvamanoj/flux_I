@@ -1,0 +1,31 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: glass-cases-ms
+  namespace: master
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-1.0.7-XPS-89460*
+spec:
+  releaseName: glass-cases-flux
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    version: v1.0.1
+    name: glass-cases-ms
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/glass-cases-ms
+      tag: 1.0.7-XPS-89460.4-c0752601
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull  
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      MSS_API: https:/stg-services.sec.ibm.com
+      LOG_FORMAT: plain
+      LOG_LEVEL: info
+      DB_POOL_MAX: 100
+      PUBLIC_URL: https://glass-cases-ms-master.atl-stg.k8s.sec.ibm.com
+    ingress:
+      host: atl-stg.k8s.sec.ibm.com

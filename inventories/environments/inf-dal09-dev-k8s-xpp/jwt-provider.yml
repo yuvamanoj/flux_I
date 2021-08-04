@@ -1,0 +1,66 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: jwt-provider
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: jwt-provider
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: jwt-provider
+    version: 1.1.2-integration
+  values:
+    readinessProbe:
+      initialDelaySeconds: 45
+    livenessProbe:
+      initialDelaySeconds: 60
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/jwt-provider
+      tag: 1.1.4-integration.fecd304e
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    resources:
+      limits:
+        cpu: .5
+      requests:
+        cpu: .25
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.k8s.integration
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/role: 'jwt-provider'
+      vault.hashicorp.com/agent-inject-secret-app.store.password: "secret/modules/jwt-provider/store/password"
+      vault.hashicorp.com/agent-inject-template-app.store.password: |-
+        {{- with secret "secret/modules/jwt-provider/store" -}}{{- .Data.data.password -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.store.keystore: "secret/modules/jwt-provider/store/keystore"
+      vault.hashicorp.com/agent-inject-template-app.store.keystore: |-
+        {{- with secret "secret/modules/jwt-provider/store" -}}{{- .Data.data.keystore -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.key.password: "secret/modules/jwt-provider/key/password"
+      vault.hashicorp.com/agent-inject-template-app.key.password: |-
+        {{- with secret "secret/modules/jwt-provider/key" -}}{{- .Data.data.password -}}{{- end }}
+      vault.hashicorp.com/agent-inject-secret-app.key.pubkey: "secret/modules/jwt-provider/key/pubkey"
+      vault.hashicorp.com/agent-inject-template-app.key.pubkey: |-
+        {{- with secret "secret/modules/jwt-provider/key" -}}{{- .Data.data.pubkey -}}{{- end }}
+    route:
+      enabled: false
+    ingress:
+      enabled: true
+      hosts:
+      - host: jwt-provider-xpp.dal09-dev.k8s-lab.sec.ibm.com
+        paths:
+        - /
+      tls:
+      - hosts:
+        - jwt-provider-xpp.dal09-dev.k8s-lab.sec.ibm.com
+        secretName: not-used
+    env:
+      environment: dev

@@ -1,0 +1,22 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: blue-pages-authenticator
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: blue-pages-authenticator
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: blue-pages-authenticator
+    version: 1.0.13-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/blue-pages-authenticator
+      tag: 1.0.13-openshift.d377d7b4
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull

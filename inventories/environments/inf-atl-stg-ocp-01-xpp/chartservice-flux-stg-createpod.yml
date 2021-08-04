@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: chartservice-pod-inf-atl-stg-ocp-01-xpp-test
+  labels:
+    app: chartservice-pod-inf-atl-stg-ocp-01-xpp
+  namespace: xpp
+spec:
+  imagePullSecrets:
+    - name: xpp-docker-registry-pull
+  containers:
+    - name: chartservice-pod-inf-atl-stg-ocp-01-xpp
+      image: mss-docker.artifactory.swg-devops.com/chart_service:1.2.0-container.cc73458a
+      command: [ "/bin/bash", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]

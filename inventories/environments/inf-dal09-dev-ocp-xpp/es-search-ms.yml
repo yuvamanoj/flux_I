@@ -1,0 +1,32 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: es-search-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-openshift.*
+spec:
+  releaseName: es-search-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: es-search-ms
+    version: 1.1.10-openshift
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/es-search-ms
+      tag: 1.1.11-openshift.2b4430c1
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    env:
+      vault_url: https://dev-vault.sec.ibm.com:8200
+      vault_role_id: c1df5d72-f643-2591-5664-15430800ade0
+      vault_secret_id: 10215b11-8a84-4c07-6f4d-1cb8176e72e6
+      vault_path: secret/modules/es_search_ms/
+      elastic_search_client_transport_hosts: dal09-dev-solr-01a.sec.ibm.com,dal09-dev-solr-01b.sec.ibm.com,dal09-dev-solr-01c.sec.ibm.com
+      elastic_search_cluster_name: elastic_dal09dev
+      elastic_search_mss_ssl_server_keyStore: /opt/mssdev/es_search_ms/conf/esclientkeystore
+      elastic_search_mss_ssl_server_trustStore: /opt/mssdev/es_search_ms/conf/esclienttruststore
+      elastic_search.port: 9300

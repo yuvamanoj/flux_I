@@ -1,0 +1,53 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: pcc-compliance-data-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-develop*
+spec:
+  releaseName: pcc-compliance-data-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: pcc-compliance-data-ms
+    version: 0.1.22-develop
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/pcc-compliance-data-ms
+      tag: 0.1.22-develop.9b13b4fa
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    secretName: pcc-compliance-data
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.k8s.integration
+    ingress:
+      enabled: true
+      annotations: {}
+      host: pcc-compliance-data-ms-xpp.dal09-dev.k8s-lab.sec.ibm.com
+    # TEMPLATE: Insert other required configuration values here
+    config:
+      pcc:
+        timeoutSeconds: 15
+        vulApiUrl: "/api/v1/static/vulnerabilities"
+        compApiUrl: "/api/v1/stats/compliance"
+      webclient_connection_timeout: 15
+      maxRetry: 3
+      device_ms_url: "https://services.sec.ibm.com:443/micro/device/?status=Active&customerId={customerId}"
+      device_enablement_ms_url: "https://services.sec.ibm.com:443/micro/device_enablement_values/?status=Active&deviceId={deviceId}"
+      device_login_url: "https://services.sec.ibm.com/rest/DeviceLogin?status=ACTIVE&optimize=false&format=json&deviceIds={deviceId}"
+      custom_error_message: "We are unable to provide compliance data at this time"
+      max_in_memory_size: 16777216 #16 * 1024 * 1024
+      spring:
+        application:
+          name: pcc-compliance-data-ms
+      server:
+        port: 3333
+    env:
+      DOCKER_REGISTRY_PULL_SECRET_NAME: docker-registry-pull
+      LOG_FORMAT: json
+      LOG_LEVEL: DEBUG

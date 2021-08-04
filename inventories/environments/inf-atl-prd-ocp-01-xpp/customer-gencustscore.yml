@@ -1,0 +1,29 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: customer-score-gen-gencustscore-atl-prd-ocp-01
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: customer-score-gen-gencustscore-atl-prd-ocp-01
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: customer-score-generator
+    version: 1.1.6-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/customer-score-generator
+      tag: 1.1.6-master.636d7bf2
+    imagePullSecrets:
+    - name: docker-registry-pull
+    schedule: "0 1 2 * *"
+    args:
+      path: /opt/mssdev/customer-score-generator/bin/generateCustomerScores.sh
+      cmd: run
+    env:
+      name: ENV
+      value: prd

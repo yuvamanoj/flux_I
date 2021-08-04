@@ -1,0 +1,27 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: alert-grid-filter-ms
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-xps87193.*
+spec:
+  releaseName: alert-grid-filter-ms
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: alert-grid-filter-ms
+    version: 0.1.9-xps87193
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/alert-grid-filter-ms
+      tag: 0.1.9-xps87193.5169a62c
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: false
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    # TEMPLATE: Insert other required configuration values here

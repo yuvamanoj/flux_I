@@ -1,0 +1,66 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: atds-automation-system
+  namespace: master
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: atds-automation-system
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: atds-automation-system
+    version: 0.2.159
+  values:
+    test: false
+    include_xpsws_gateway: false
+
+    environment: sa-eu-prd
+    organization: sa
+    location: eu
+    stack: prd
+    domain: fra02-prd.k8s.sec.ibm.com
+    team: sa
+    pypi_repo_url: na.artifactory.swg-devops.com/artifactory/api/pypi/mss-pypi/simple
+    pypi_repo_username: mssbuild@us.ibm.com
+    pypi_repo_password_secret_name: pypi-repo-password
+
+    kafka_bootstrap_servers: fra02-prd-kfk-01a.sec.ibm.com:9093,fra02-prd-kfk-01b.sec.ibm.com:9093,fra02-prd-kfk-01c.sec.ibm.com:9093
+    services_rest_url: https://eu-services.sec.ibm.com/rest
+    alert_metadata_ms_url: https://eu-services.sec.ibm.com/micro/ai_alert_metadata
+    atds_prediction_url: https://eu-services.sec.ibm.com/micro/atds-python/predict
+    atds_input_ms_url: https://eu-services.sec.ibm.com/micro/atds_input
+    alert_ms_url: https://eu-services.sec.ibm.com/micro/ai_alert
+    alert_worklog_ms_url: https://eu-services.sec.ibm.com/micro/ai_alert_worklog
+    atds_key_indicators_url: https://eu-services.sec.ibm.com/micro/atds-python/key_indicators
+    atds_historical_url: https://eu-services.sec.ibm.com/micro/atds-python/historical
+    atds_historical_stats_url: https://eu-services.sec.ibm.com/micro/atds-python/historical_stats
+    atds_variable_importance_url: https://eu-services.sec.ibm.com/micro/atds-python/variable_importance
+    qradar_rest_api: https://eu-services.sec.ibm.com/micro/qradar_rest_api
+
+    kafka_keystores_secret_name: kafka-keystores
+    kafka_jaas_secret_name: kafka-jaas
+    services_token_secret_name: services-token
+    new_relic_license_key_secret_name: new-relic-license-key
+    docker_registry_pull_secret_name: docker-registry-pull
+    cm_token_secret_name: config-management-token
+
+    components:
+      ai_alert_scoring_applicator:
+        min_replicas: 2
+        max_replicas: 2
+      ai_alert_status_processor:
+        min_replicas: 2
+        max_replicas: 2
+      ai_alert_metadata_processor:
+        min_replicas: 2
+        max_replicas: 2
+      ai_alert_worklog_processor:
+        min_replicas: 2
+        max_replicas: 2
+      ai_alert_qradar_processor:
+        min_replicas: 2
+        max_replicas: 2  

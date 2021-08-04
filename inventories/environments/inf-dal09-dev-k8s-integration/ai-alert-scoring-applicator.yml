@@ -1,0 +1,60 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: ai-alert-scoring-applicator
+  namespace: integration
+  annotations:
+    fluxcd.io/automated: "false"
+    filter.fluxcd.io/chart-image: glob:*-separating_helm_chart.*
+spec:
+  releaseName: ai-alert-scoring-applicator
+  targetNamespace: integration
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: ai_alert_scoring_applicator
+    version: 1.0.81-separatinghelmchart
+  values:
+    test: false
+    include_xpsws_gateway: false
+    replicaCount: 2
+    revisionHistoryLimit: 1
+
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/ai-alert-scoring-applicator
+      tag: latest
+
+
+    environment: sa-dal09-dev
+    organization: sa
+    location: dal09
+    stack: dev
+    domain: dal09-dev.k8s-lab.sec.ibm.com
+    team: sa
+
+    kafka_bootstrap_servers: dal09-dev-kfk-01a.sec.ibm.com:9093,dal09-dev-kfk-01b.sec.ibm.com:9093,dal09-dev-kfk-01c.sec.ibm.com:9093
+    services_rest_url: https://dal09-dev-services.sec.ibm.com/rest
+    alert_metadata_ms_url: https://dal09-dev-services.sec.ibm.com/micro/ai_alert_metadata
+    atds_prediction_url: https://dal09-dev-services.sec.ibm.com/micro/atds-python/predict
+    atds_input_ms_url: https://dal09-dev-services.sec.ibm.com/micro/atds_input
+    alert_ms_url: https://dal09-dev-services.sec.ibm.com/micro/ai_alert
+    alert_worklog_ms_url: https://dal09-dev-services.sec.ibm.com/micro/ai_alert_worklog
+
+    atds_key_indicators_url: https://dal09-dev-services.sec.ibm.com/micro/atds-python/key_indicators
+    atds_historical_url: https://dal09-dev-services.sec.ibm.com/micro/atds-python/historical
+    atds_historical_stats_url: https://dal09-dev-services.sec.ibm.com/micro/atds-python/historical_stats
+    atds_variable_importance_url: https://dal09-dev-services.sec.ibm.com/micro/atds-python/variable_importance
+    qradar_rest_api: https://dal09-dev-services.sec.ibm.com/micro/qradar_rest_api
+
+    kafka_keystores_secret_name: kafka-keystores
+    kafka_jaas_secret_name: kafka-jaas
+    services_token_secret_name: services-token
+    new_relic_license_key_secret_name: new-relic-license-key
+    docker_registry_pull_secret_name: docker-registry-pull
+    cm_token_secret_name: config-management-token
+
+    components:
+      ai_alert_scoring_applicator:
+        min_replicas: 2
+        max_replicas: 2

@@ -1,0 +1,40 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: vault-injector-demo
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-master.*
+spec:
+  releaseName: vault-injector-demo
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: vault-injector-demo
+    version: 1.0.0-master
+  values:
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/vault-injector-demo
+      tag: 1.0.0-master.c597df0a
+    imagePullSecrets:
+    - name: xpp-docker-registry-pull
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    serviceAccount:
+      create: true
+    podAnnotations:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/role: vault-injector-demo
+      vault.hashicorp.com/agent-inject-secret-database.json: secret/data/modules/vault-injector-demo/database
+      vault.hashicorp.com/agent-inject-token: true
+      vault.hashicorp.com/agent-inject-default-template: json
+#      vault.hashicorp.com/agent-inject-template-database.json: |
+#        {{- with secret "secret/modules/vault-injector-demo/database" -}}
+#        {{- .Data.data | toJSON -}}
+#        {{- end }}
+    route:
+      enabled: true
+      host: vault-injector-demo.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com

@@ -1,0 +1,54 @@
+---
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: snow-update-listener
+  namespace: xpp
+  annotations:
+    fluxcd.io/automated: "true"
+    filter.fluxcd.io/chart-image: glob:*-integration.*
+spec:
+  releaseName: snow-update-listener
+  forceUpgrade: true
+  chart:
+    repository: https://na.artifactory.swg-devops.com/artifactory/mss-helm-virtual
+    name: snow-update-listener
+    version: 1.0.7-xps94542
+  values:
+    service:
+      targetPort: 3333
+    readinessProbe:
+      initialDelaySeconds: 30
+    livenessProbe:
+      initialDelaySeconds: 30
+    image:
+      repository: mss-docker.artifactory.swg-devops.com/snow-update-listener
+      tag: 1.0.9-integration.1f4cf7a5
+    graphite:
+      enabled: true
+      host: dal09-prd-statsnode-01a.sec.ibm.com
+      prefix: dev.ocp.xpp
+    secretName: snow-update-listener
+    ingress:
+      enabled: false
+    route:
+      enabled: true
+      host: snow-update-listener-ms-xpp.apps-priv.dal09-dev-ocp-01.cl.sec.ibm.com
+    config:
+      server:
+        port: 3333
+      app:
+        elasticSearch:
+          baseUrl: dal09-dev-solr-01a.sec.ibm.com:9200,dal09-dev-solr-01b.sec.ibm.com:9200,dal09-dev-solr-01c.sec.ibm.com:9200
+          indexName: servicenow
+          type: incident
+        serviceNow:
+          scheme: https
+          baseUrl: secsupportdev.service-now.com
+          endpoint: "/api/now/table/{schema}/{id}"
+      spring:
+        kafka:
+          bootstrap-servers: dal09-dev-kfk-01a.sec.ibm.com:9093,dal09-dev-kfk-01b.sec.ibm.com:9093,dal09-dev-kfk-01c.sec.ibm.com:9093
+    env:
+      LOG_FORMAT: plain
+      LOG_LEVEL: DEBUG
